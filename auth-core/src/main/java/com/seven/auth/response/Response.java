@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 @JsonInclude
-public class Response {
-    private Object data;
+public class Response<T> {
+    private T data;
     private HttpStatus status;
     private Boolean isError;
     private String message;

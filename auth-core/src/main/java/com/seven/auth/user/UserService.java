@@ -1,6 +1,5 @@
 package com.seven.auth.user;
 
-import com.seven.auth.security.authentication.jwt.JwtService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -16,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,16 +25,13 @@ public class UserService implements UserDetailsService {
     private UserRepository userRepository;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     private Authentication userAuthentication;
-    private JwtService jwtService;
 
     public UserService(UserRepository userRepository ,
                        BCryptPasswordEncoder passwordEncoder ,
-                       Authentication userAuthentication,
-                       JwtService jwtService) {
+                       Authentication userAuthentication) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = passwordEncoder;
         this.userAuthentication = userAuthentication;
-        this.jwtService = jwtService;
     }
 
     //For Admin
@@ -47,21 +44,13 @@ public class UserService implements UserDetailsService {
         return userRecords;
     }
 
-    //For Both
-    public UserRecord get(){ return get(null);}
-    public UserRecord get(Object email) {
-        String id = String.valueOf(userAuthentication.getPrincipal());
-
+    public UserRecord get(UUID id) {
         User userFromDb;
-        if (email == null) { //Signifies account owner access.
-            userFromDb = userRepository.findByEmail(id)
+         //Signifies account owner access.
+            userFromDb = userRepository.findById(id)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND ,
                             "This user does not exist or has been deleted"));
-        } else {  // Signifies admin access. Admin can fetch any user without restrictions
-            userFromDb = userRepository.findByEmail(email.toString())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND ,
-                            "This user does not exist or has been deleted"));
-        }
+
         return UserRecord.copy(userFromDb);
     }
 
@@ -88,32 +77,18 @@ public class UserService implements UserDetailsService {
         }
     }
 
-    public UserDTO register(UserCreateRequest request){
-        UserRecord record = create(request);
-        String token = jwtService.generateToken(record.email(),
-                Map.of("role", record.role().name(),
-                            "privileges", record.role().privileges));
-
-        return UserDTO.builder().data(record).token(token).build();
-    }
-    public UserDTO login (User user){
-        String token = jwtService.generateToken(user.getUsername(),Map.of("role", user.getRole().name(),
-                "privileges", user.getRole().privileges));
-        return UserDTO.builder().data(UserRecord.copy(user)).token(token).build();
-    }
-
     //For User
-    public void delete(Object id) {//Only the user can deactivate their account
+    public void delete(UUID id) {//Only the user can deactivate their account
         User user = (User) userAuthentication.getPrincipal();
-        if (!user.getEmail().equals((String) id)) throw new ResponseStatusException(HttpStatus.FORBIDDEN , "Account Breach");
+        if (user.getId() != id) throw new ResponseStatusException(HttpStatus.FORBIDDEN , "Account Breach");
 
-        userRepository.deleteById((Long) id);
+        userRepository.deleteById(id);
     }
 
     //For User
-    public UserRecord update(UserUpdateRequest userUpdateRequest) {
+    public UserRecord update(UUID id, UserUpdateRequest userUpdateRequest) {
         try {
-            User user = userRepository.findByEmail(userUpdateRequest.getEmail())
+            User user = userRepository.findById(id)
                     .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "User account could not be found"));
 
             Boolean modified = false;

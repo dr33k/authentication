@@ -3,8 +3,11 @@ package com.seven.auth.user;
 import com.seven.auth.response.Response;
 import com.seven.auth.security.authorization.Authorize;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 import static com.seven.auth.response.Responder.noContent;
 import static com.seven.auth.response.Responder.ok;
@@ -19,19 +22,19 @@ public class UserController {
 
     @GetMapping
     @Authorize(roles = {"ROLE_ADMIN", "ADMIN"})
-    public ResponseEntity <Response> getResource() {
-        UserRecord userRecord = userService.get(); //Signifies account owner access
+    public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "userId") UUID id) {
+        UserRecord userRecord = userService.get(id); //Signifies account owner access
         return ok(userRecord);
     }
 
-    @PutMapping("/update")
-    public ResponseEntity <Response> updateResource(@Valid @RequestBody UserUpdateRequest request) {
-        UserRecord userRecord = userService.update(request);
+    @PutMapping("/update/{userId}")
+    public ResponseEntity <Response> updateResource(@Valid @NotNull @PathVariable(value = "userId") UUID id, @Valid @RequestBody UserUpdateRequest request) {
+        UserRecord userRecord = userService.update(id, request);
         return ok(userRecord);
     }
-    @DeleteMapping("/delete")
-    public ResponseEntity <Response> deleteResource(@Valid @RequestParam(name = "email") String email) {
-        userService.delete(email);
+    @DeleteMapping("/delete/{userId}")
+    public ResponseEntity <Response> deleteResource(@Valid @NotNull @PathVariable(value = "userId") UUID id) {
+        userService.delete(id);
         return noContent();
     }
 }
