@@ -26,8 +26,8 @@ public class JwtAuthController {
     }
 
     @PostMapping(value = "/register", produces = "application/json", consumes = "application/json")
-    public ResponseEntity<Response> createResource(@Valid @RequestBody AccountCreateRequest request) {
-            UserDTO userDTO = jwtService.register(request);
+    public ResponseEntity<Response> createResource(@Valid @RequestBody AccountRequest.Create request) {
+            AccountDTO userDTO = jwtService.register(request);
             return created(userDTO.data, userDTO.token);
     }
 
@@ -36,7 +36,7 @@ public class JwtAuthController {
         Account account = (Account) authenticationProvider.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())).getPrincipal();
 
-        UserDTO userDTO = jwtService.login(account);
+        AccountDTO userDTO = jwtService.login(account);
         return ok(userDTO.data, userDTO.token);
     }
 }

@@ -16,11 +16,6 @@ public record AccountRecord(
         LocalDate dateBirth,
         ZonedDateTime dateReg,
         ZonedDateTime dateModified,
-        AccountRole role,
-        Boolean isAccountNonExpired,
-        Boolean isAccountNonLocked,
-        Boolean isCredentialsNonExpired,
-        Boolean isEnabled,
         String message
 ) {
     public static AccountRecord copy(Account u){
@@ -33,47 +28,32 @@ public record AccountRecord(
                 u.getDob(),
                 u.getDateCreated(),
                 u.getDateUpdated(),
-                u.getRole(),
-                u.isAccountNonExpired(),
-                u.isAccountNonLocked(),
-                u.isCredentialsNonExpired(),
-                u.isEnabled(),
                 null
         );
     }
-    public static AccountRecord copy(AccountUpdateRequest u){
+    public static AccountRecord copy(AccountRequest.Update u){
         return new AccountRecord(
                 u.getFirstName(),
                 u.getLastName(),
                 u.getPhoneNo(),
                 null,
                 u.getPassword(),
-                u.getDateBirth(),
+                u.getDob(),
                 null,
                 null,
-                null,
-                u.getIsAccountNonExpired(),
-                u.getIsAccountNonLocked(),
-                u.getIsCredentialsNonExpired(),
-                u.getIsEnabled(),
                 null
         );
     }
-    public static AccountRecord copy(AccountCreateRequest u){
+    public static AccountRecord copy(AccountRequest.Create u){
         return new AccountRecord(
                 u.getFirstName(),
                 u.getLastName(),
                 u.getPhoneNo(),
                 u.getEmail(),
                 u.getPassword(),
-                u.getDateBirth(),
+                u.getDob(),
                 null,
                 null,
-                null,
-                true,
-                true,
-                true,
-                true,
                 null
         );
     }

@@ -13,18 +13,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(name="account")
+@Table(name="auth_account")
 @Data
 @ToString
-@NoArgsConstructor
-
 public class Account implements Serializable, UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -36,11 +31,17 @@ public class Account implements Serializable, UserDetails {
     @Column(nullable = false)
     private String lastName;
 
-    @Column(nullable = false,length=15)
+    @Column(nullable = false)
     private String phoneNo;
+
+    @Column(nullable = false)
+    private String phoneNoAlt;
 
     @Column(nullable = false,unique = true)
     private String email;
+
+    @Column(nullable = false,unique = true)
+    private String emailAlt;
 
     @Column(nullable = false)
     private String password;
@@ -53,20 +54,32 @@ public class Account implements Serializable, UserDetails {
     private ZonedDateTime dateCreated;
 
     @UpdateTimestamp
-    @Column
-    private ZonedDateTime dateUpdated;
     @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private UserRole role;
+    private ZonedDateTime dateUpdated;
 
-    public Account(String firstName, String lastName, String phoneNo, String email, String password, LocalDate dob, UserRole role) {
+    public Account() {
+    }
+
+    public Account(String firstName, String lastName, String phoneNo, String email, String password, LocalDate dob) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNo = phoneNo;
         this.email = email;
         this.password = password;
         this.dob = dob;
-        this.role = role;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Account account = (Account) o;
+        return Objects.equals(id, account.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 
     @Override
@@ -80,9 +93,6 @@ public class Account implements Serializable, UserDetails {
     public String getUsername() {
         return this.email;
     }
-
-    @Override
-    public String getPassword(){return this.password;}
 
     @Override
     public boolean isAccountNonExpired() {

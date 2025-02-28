@@ -1,6 +1,8 @@
 package com.seven.auth.account;
 
+import com.seven.auth.Pagination;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,34 +15,31 @@ import org.springframework.web.context.annotation.ApplicationScope;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
 @ApplicationScope
 public class AccountService implements UserDetailsService {
     private AccountRepository accountRepository;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
-    private Authentication userAuthentication;
+    private Authentication authentication;
 
     public AccountService(AccountRepository accountRepository,
                           BCryptPasswordEncoder passwordEncoder ,
-                          Authentication userAuthentication) {
+                          Authentication authentication) {
         this.accountRepository = accountRepository;
         this.bCryptPasswordEncoder = passwordEncoder;
-        this.userAuthentication = userAuthentication;
+        this.authentication = authentication;
     }
 
-    //For Admin
-    public Set <AccountRecord> getAll() {
-        List <Account> accountList = accountRepository.findAll();
+    public List <AccountRecord> getAll(Pagination pagination) {
+        Page<Account> accountList = accountRepository.findAllLimitOffset(pagination.getLimit(), pagination.getOffset());
 
-        Set <AccountRecord> userRecords =
-                accountList.stream().map(AccountRecord::copy).collect(Collectors.toSet());
+        List <AccountRecord> accountRecords =
+                accountList.stream().map(AccountRecord::copy).collect(Collectors.toList());
 
-        return userRecords;
+        return accountRecords;
     }
 
     public AccountRecord get(UUID id) {
@@ -48,21 +47,19 @@ public class AccountService implements UserDetailsService {
          //Signifies account owner access.
             accountFromDb = accountRepository.findById(id)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND ,
-                            "This user does not exist or has been deleted"));
+                            "This account does not exist or has been deleted"));
 
         return AccountRecord.copy(accountFromDb);
     }
 
-    public AccountRecord create(AccountCreateRequest accountCreateRequest) {
+    @Transactional
+    public AccountRecord create(AccountRequest.Create accountCreateRequest) {
         try {
             if (accountRepository.existsByEmail(accountCreateRequest.getEmail()))
-                throw new ResponseStatusException(HttpStatus.CONFLICT , "A user with this email already exists");
+                throw new ResponseStatusException(HttpStatus.CONFLICT , "An account with this email already exists");
 
             Account account = new Account();
             BeanUtils.copyProperties(accountCreateRequest, account);
-
-            //Set role
-            account.setRole(AccountRole.PASSENGER);
 
             //Encode password
             account.setPassword(bCryptPasswordEncoder.encode(accountCreateRequest.getPassword()));
@@ -71,21 +68,21 @@ public class AccountService implements UserDetailsService {
 
             return AccountRecord.copy(account);
         } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR ,
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST ,
                     "Account could not be created, please try again later. Why? " + ex.getMessage());
         }
     }
 
-    //For Account
-    public void delete(UUID id) {//Only the user can deactivate their account
-        Account account = (Account) userAuthentication.getPrincipal();
+    @Transactional
+    public void delete(UUID id) {
+        Account account = (Account) authentication.getPrincipal();
         if (account.getId() != id) throw new ResponseStatusException(HttpStatus.FORBIDDEN , "Account Breach");
 
         accountRepository.deleteById(id);
     }
 
-    //For Account
-    public AccountRecord update(UUID id, AccountUpdateRequest accountUpdateRequest) {
+    @Transactional
+    public AccountRecord update(UUID id, AccountRequest.Update accountUpdateRequest) {
         try {
             Account account = accountRepository.findById(id)
                     .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "Account account could not be found"));
@@ -109,8 +106,8 @@ public class AccountService implements UserDetailsService {
                 account.setPhoneNo(accountUpdateRequest.getPhoneNo());
                 modified = true;
             }
-            if (accountUpdateRequest.getDateBirth() != null) {
-                account.setDob(accountUpdateRequest.getDateBirth());
+            if (accountUpdateRequest.getDob() != null) {
+                account.setDob(accountUpdateRequest.getDob());
                 modified = true;
             }
             if (modified) accountRepository.save(account);
@@ -119,11 +116,12 @@ public class AccountService implements UserDetailsService {
 
         }catch (ResponseStatusException ex) {throw ex;}
         catch (Exception ex) {
-            throw new RuntimeException("Account could not be modified, please contact System Administrator. Why? " + ex.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Account could not be modified, Message: " + ex.getMessage());
         }
     }
 
-    public UserDetails loadAccountByAccountname(String username) throws UsernameNotFoundException {
+
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return accountRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
     }
 }

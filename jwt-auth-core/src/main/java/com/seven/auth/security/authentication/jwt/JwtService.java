@@ -60,17 +60,17 @@ public class JwtService {
         return claims.getExpiration().before(new Date());
     }
 
-    public UserDTO register(AccountCreateRequest request){
-        UserRecord record = accountService.create(request);
+    public AccountDTO register(AccountRequest.Create request){
+        AccountRecord record = accountService.create(request);
         String token = generateToken(record.email(),
                 Map.of("role", record.role().name(),
                         "privileges", record.role().privileges));
 
-        return UserDTO.builder().data(record).token(token).build();
+        return AccountDTO.builder().data(record).token(token).build();
     }
-    public UserDTO login (Account account){
+    public AccountDTO login (Account account){
         String token = generateToken(account.getUsername(),Map.of("role", account.getRole().name(),
                 "privileges", account.getRole().privileges));
-        return UserDTO.builder().data(UserRecord.copy(account)).token(token).build();
+        return AccountDTO.builder().data(AccountRecord.copy(account)).token(token).build();
     }
 }
