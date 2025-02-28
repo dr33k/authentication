@@ -1,4 +1,4 @@
-package com.seven.auth.user;
+package com.seven.auth.account;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -20,12 +20,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(name="app_user")
+@Table(name="account")
 @Data
 @ToString
 @NoArgsConstructor
 
-public class User implements Serializable, UserDetails {
+public class Account implements Serializable, UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -59,7 +59,7 @@ public class User implements Serializable, UserDetails {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    public User(String firstName, String lastName, String phoneNo, String email, String password, LocalDate dob, UserRole role) {
+    public Account(String firstName, String lastName, String phoneNo, String email, String password, LocalDate dob, UserRole role) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNo = phoneNo;

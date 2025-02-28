@@ -1,6 +1,6 @@
 package com.seven.auth.security.authentication.jwt;
 
-import com.seven.auth.user.UserService;
+import com.seven.auth.account.AccountService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,12 +22,12 @@ import org.springframework.web.context.annotation.ApplicationScope;
 @EnableMethodSecurity
 public class Configuration {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final UserService userService;
+    private final AccountService accountService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public Configuration(JwtAuthenticationFilter jwtAuthenticationFilter, UserService userService, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public Configuration(JwtAuthenticationFilter jwtAuthenticationFilter, AccountService accountService, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.userService = userService;
+        this.accountService = accountService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
@@ -59,7 +59,7 @@ public class Configuration {
     public AuthenticationProvider authenticationProvider(){
         DaoAuthenticationProvider dao =
                 new DaoAuthenticationProvider();
-        dao.setUserDetailsService(userService);
+        dao.setUserDetailsService(accountService);
         dao.setPasswordEncoder(bCryptPasswordEncoder);
         return dao;
     }

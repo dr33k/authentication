@@ -1,7 +1,7 @@
 package com.seven.auth.security.authentication.jwt;
 
 import com.seven.auth.response.Response;
-import com.seven.auth.user.*;
+import com.seven.auth.account.*;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -26,17 +26,17 @@ public class JwtAuthController {
     }
 
     @PostMapping(value = "/register", produces = "application/json", consumes = "application/json")
-    public ResponseEntity<Response> createResource(@Valid @RequestBody UserCreateRequest request) {
+    public ResponseEntity<Response> createResource(@Valid @RequestBody AccountCreateRequest request) {
             UserDTO userDTO = jwtService.register(request);
             return created(userDTO.data, userDTO.token);
     }
 
     @PostMapping(value = "/login", produces = "application/json", consumes = "application/json")
     public ResponseEntity<Response> login(@Valid @RequestBody JwtLoginRequest request){
-        User user = (User) authenticationProvider.authenticate(
+        Account account = (Account) authenticationProvider.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())).getPrincipal();
 
-        UserDTO userDTO = jwtService.login(user);
+        UserDTO userDTO = jwtService.login(account);
         return ok(userDTO.data, userDTO.token);
     }
 }

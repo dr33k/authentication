@@ -1,4 +1,4 @@
-package com.seven.auth.user;
+package com.seven.auth.account;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.Email;
@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Validated
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
-public class UserCreateRequest{
+public class AccountCreateRequest {
     @NotBlank(message = "Required field")
     @Pattern(regexp = "^[A-Za-z'\\-]{2,30}$",message = "Name must be at least 2 characters long")
     private String firstName;

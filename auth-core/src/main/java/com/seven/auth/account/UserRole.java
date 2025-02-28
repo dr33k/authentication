@@ -1,4 +1,4 @@
-package com.seven.auth.user;
+package com.seven.auth.account;
 
 
 import java.util.Arrays;

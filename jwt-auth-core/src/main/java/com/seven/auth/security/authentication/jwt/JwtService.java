@@ -1,6 +1,6 @@
 package com.seven.auth.security.authentication.jwt;
 
-import com.seven.auth.user.*;
+import com.seven.auth.account.*;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -22,7 +22,7 @@ public class JwtService {
     @Autowired
     Environment environment;
     @Autowired
-    UserService userService;
+    AccountService accountService;
 
     public Claims extractClaims(String token){
         return Jwts.parserBuilder()
@@ -60,17 +60,17 @@ public class JwtService {
         return claims.getExpiration().before(new Date());
     }
 
-    public UserDTO register(UserCreateRequest request){
-        UserRecord record = userService.create(request);
+    public UserDTO register(AccountCreateRequest request){
+        UserRecord record = accountService.create(request);
         String token = generateToken(record.email(),
                 Map.of("role", record.role().name(),
                         "privileges", record.role().privileges));
 
         return UserDTO.builder().data(record).token(token).build();
     }
-    public UserDTO login (User user){
-        String token = generateToken(user.getUsername(),Map.of("role", user.getRole().name(),
-                "privileges", user.getRole().privileges));
-        return UserDTO.builder().data(UserRecord.copy(user)).token(token).build();
+    public UserDTO login (Account account){
+        String token = generateToken(account.getUsername(),Map.of("role", account.getRole().name(),
+                "privileges", account.getRole().privileges));
+        return UserDTO.builder().data(UserRecord.copy(account)).token(token).build();
     }
 }

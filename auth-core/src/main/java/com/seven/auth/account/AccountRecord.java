@@ -1,4 +1,4 @@
-package com.seven.auth.user;
+package com.seven.auth.account;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
-public record UserRecord(
+public record AccountRecord(
         String firstName,
         String lastName,
         String phoneNo,
@@ -16,15 +16,15 @@ public record UserRecord(
         LocalDate dateBirth,
         ZonedDateTime dateReg,
         ZonedDateTime dateModified,
-        UserRole role,
+        AccountRole role,
         Boolean isAccountNonExpired,
         Boolean isAccountNonLocked,
         Boolean isCredentialsNonExpired,
         Boolean isEnabled,
         String message
 ) {
-    public static UserRecord copy(User u){
-        return new UserRecord(
+    public static AccountRecord copy(Account u){
+        return new AccountRecord(
                 u.getFirstName(),
                 u.getLastName(),
                 u.getPhoneNo(),
@@ -41,8 +41,8 @@ public record UserRecord(
                 null
         );
     }
-    public static UserRecord copy(UserUpdateRequest u){
-        return new UserRecord(
+    public static AccountRecord copy(AccountUpdateRequest u){
+        return new AccountRecord(
                 u.getFirstName(),
                 u.getLastName(),
                 u.getPhoneNo(),
@@ -59,8 +59,8 @@ public record UserRecord(
                 null
         );
     }
-    public static UserRecord copy(UserCreateRequest u){
-        return new UserRecord(
+    public static AccountRecord copy(AccountCreateRequest u){
+        return new AccountRecord(
                 u.getFirstName(),
                 u.getLastName(),
                 u.getPhoneNo(),

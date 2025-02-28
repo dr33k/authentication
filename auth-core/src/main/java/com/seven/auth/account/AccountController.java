@@ -1,4 +1,4 @@
-package com.seven.auth.user;
+package com.seven.auth.account;
 
 import com.seven.auth.response.Response;
 import com.seven.auth.security.authorization.Authorize;
@@ -14,27 +14,27 @@ import static com.seven.auth.response.Responder.ok;
 
 @RestController
 @RequestMapping("/user")
-public class UserController {
-    UserService userService;
-    public UserController(UserService userService) {
-        this.userService = userService;
+public class AccountController {
+    AccountService accountService;
+    public AccountController(AccountService accountService) {
+        this.accountService = accountService;
     }
 
     @GetMapping
     @Authorize(roles = {"ROLE_ADMIN", "ADMIN"})
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "userId") UUID id) {
-        UserRecord userRecord = userService.get(id); //Signifies account owner access
+        UserRecord userRecord = accountService.get(id); //Signifies account owner access
         return ok(userRecord);
     }
 
     @PutMapping("/update/{userId}")
-    public ResponseEntity <Response> updateResource(@Valid @NotNull @PathVariable(value = "userId") UUID id, @Valid @RequestBody UserUpdateRequest request) {
-        UserRecord userRecord = userService.update(id, request);
+    public ResponseEntity <Response> updateResource(@Valid @NotNull @PathVariable(value = "userId") UUID id, @Valid @RequestBody AccountUpdateRequest request) {
+        UserRecord userRecord = accountService.update(id, request);
         return ok(userRecord);
     }
     @DeleteMapping("/delete/{userId}")
     public ResponseEntity <Response> deleteResource(@Valid @NotNull @PathVariable(value = "userId") UUID id) {
-        userService.delete(id);
+        accountService.delete(id);
         return noContent();
     }
 }

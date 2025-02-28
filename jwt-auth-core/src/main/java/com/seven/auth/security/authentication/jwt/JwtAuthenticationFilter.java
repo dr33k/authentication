@@ -1,6 +1,6 @@
 package com.seven.auth.security.authentication.jwt;
 
-import com.seven.auth.user.UserService;
+import com.seven.auth.account.AccountService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,11 +19,11 @@ import java.io.IOException;
 @Configuration
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
-    private final UserService userService;
+    private final AccountService accountService;
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserService userService) {
+    public JwtAuthenticationFilter(JwtService jwtService, AccountService accountService) {
         this.jwtService = jwtService;
-        this.userService = userService;
+        this.accountService = accountService;
     }
 
     @Override
@@ -36,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     Claims claims = jwtService.extractClaims(token);
                     String username = claims.getSubject();
                     if (username != null) {
-                        var user = userService.loadUserByUsername(username);
+                        var user = accountService.loadUserByUsername(username);
                         if (jwtService.isTokenValid(claims)) {
                             request.setAttribute("subject", username);
                             request.setAttribute("role", claims.get("role"));
