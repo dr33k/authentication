@@ -2,8 +2,6 @@ package com.seven.auth.account;
 
 import com.seven.auth.Pagination;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,18 +15,16 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.annotation.ApplicationScope;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
 @Service
-@ApplicationScope
 @Slf4j
 public class AccountService implements UserDetailsService {
-    private AccountRepository accountRepository;
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-    private Authentication authentication;
+    private final AccountRepository accountRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final Authentication authentication;
 
     public AccountService(AccountRepository accountRepository,
                           BCryptPasswordEncoder passwordEncoder,

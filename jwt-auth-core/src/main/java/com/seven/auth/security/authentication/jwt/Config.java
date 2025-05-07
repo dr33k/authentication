@@ -2,6 +2,7 @@ package com.seven.auth.security.authentication.jwt;
 
 import com.seven.auth.account.AccountService;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -18,14 +19,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.context.annotation.ApplicationScope;
 
 
-@org.springframework.context.annotation.Configuration
+@Configuration
 @EnableMethodSecurity
-public class Configuration {
+public class Config {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AccountService accountService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public Configuration(JwtAuthenticationFilter jwtAuthenticationFilter, AccountService accountService, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public Config(JwtAuthenticationFilter jwtAuthenticationFilter, AccountService accountService, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.accountService = accountService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;

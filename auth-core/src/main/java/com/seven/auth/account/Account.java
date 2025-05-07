@@ -2,19 +2,16 @@ package com.seven.auth.account;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name="auth_account")
@@ -84,10 +81,10 @@ public class Account implements Serializable, UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        SimpleGrantedAuthority sga = new SimpleGrantedAuthority("ROLE_"+this.role.name().toUpperCase());
-        Set<SimpleGrantedAuthority> sgaSet = Arrays.stream(role.privileges).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
-        sgaSet.add(sga);
-        return sgaSet;
+//        SimpleGrantedAuthority sga = new SimpleGrantedAuthority("ROLE_"+this.role.name().toUpperCase());
+//        Set<SimpleGrantedAuthority> sgaSet = Arrays.stream(role.privileges).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
+//        sgaSet.add(sga);
+        return null;
     }
     @Override
     public String getUsername() {

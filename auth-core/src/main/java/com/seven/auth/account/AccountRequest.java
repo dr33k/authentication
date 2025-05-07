@@ -28,9 +28,9 @@ public class AccountRequest {
         @Pattern(regexp = "^[+-][0-9]{10,20}$", message = "Invalid phone number format. Include country code")
         private String phoneNo;
         @NotBlank(message = "Required field")
-        @Email(regexp = "^[A-Za-z0-9\\-]{2,}@[A-Za-z\\-]{2,}\\..{2,}$", message = "Invalid email format")
+        @Email(regexp = "[\\w{2,}@\\w{2,}\\.\\w{2,}", message = "Invalid email format")
         private String email;
-        @NotBlank(message = "Required field")
+        @Pattern(regexp = "^[A-Za-z\\d'.!@#$%^&*_\\-]{8,}",message = "Password must fulfill all requirements")
         private String password;
         @Past(message = "Future and current dates not allowed")
         private LocalDate dob;
@@ -47,9 +47,9 @@ public class AccountRequest {
         @Pattern(regexp = "^[+-][0-9]{10,20}$",message = "Name must be at least 2 characters long")
         String phoneNo ;
         @NotBlank
-        @Email(regexp = "[A-Za-z0-9\\-]{2,}@[A-Za-z'\\-]{2,}\\.[A-Za-z'\\-]{2,}", message = "Invalid email format")
+        @Email(regexp = "[\\w{2,}@\\w{2,}\\.\\w{2,}", message = "Invalid email format")
         String email;
-        @Pattern(regexp = "^[A-Za-z\\d'.!@#$%^&*_\\-]{8,}",message = "Password must be at least 8 characters long")
+        @Pattern(regexp = "^[A-Za-z\\d'.!@#$%^&*_\\-]{8,}",message = "Password must fulfill all requirements")
         String password;
         @Past(message = "Future and current dates not allowed")
         LocalDate dob;
