@@ -17,7 +17,7 @@
     <modules>
         <module>jwt-auth-sdk</module>
         <module>jwt-auth-core</module>
-        <module>auth-core</module>
+        <module>authorization</module>
     </modules>
 
     <properties>

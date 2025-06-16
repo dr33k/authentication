@@ -19,7 +19,7 @@
     <dependencies>
         <dependency>
             <groupId>com.seven</groupId>
-            <artifactId>auth-core</artifactId>
+            <artifactId>authorization</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
