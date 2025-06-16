@@ -1,14 +1,23 @@
 package com.seven.auth.config.tenant;
 
+import com.seven.auth.application.Application;
+import com.seven.auth.application.ApplicationDTO;
 import com.seven.auth.application.ApplicationRepository;
-import io.micrometer.common.util.StringUtils;
+import com.seven.auth.util.Constants;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.io.IOException;
+import java.util.UUID;
 
 @Component
-public class TenantRouter implements ContainerRequestFilter {
+public class TenantRouter implements Filter {
     private static final Logger log = LoggerFactory.getLogger(TenantRouter.class);
     private final ApplicationRepository applicationRepository;
     private final ModelMapper modelMapper;
@@ -19,46 +28,37 @@ public class TenantRouter implements ContainerRequestFilter {
     }
 
     @Override
-    public void filter(ContainerRequestContext requestContext) {
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         log.info("Routing...");
-        String tenantId = requestContext.getHeaders().getFirst("X-Tenant-Id");
+        HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+        UUID tenantId;
         try {
-            String method = requestContext.getRequest().getMethod().toLowerCase();
-            String path = requestContext.getUriInfo().getPath();
+            tenantId = UUID.fromString(httpServletRequest.getHeader("X-Tenant-Id"));
+        }catch (Exception e){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid Tenant Id Provided");
+        }
+        try {
+            String method = httpServletRequest.getMethod().toLowerCase();
+            String path = httpServletRequest.getContextPath();
 
-            //If no tenantId was provided
-            if (StringUtils.isBlank(tenantId)) {
-                if (!isRequestAllowed(method, path)) {
-                    requestContext.abortWith(
-                            Response.status(Response.Status.FORBIDDEN)
-                                    .entity("No Tenant Provided")
-                                    .build()
-                    );
-                }
-                TenantContext.setCurrentTenant(Constants.AUTHSHIELD_METADATA);
+            if (!isRequestAllowed(method, path)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No Tenant Provided");
             } else if (isApplicationRequest(path)) {
-                TenantContext.setCurrentTenant(Constants.AUTHSHIELD_METADATA);
+                TenantContext.setCurrentTenant(Constants.AUTHORIZATION_APPLICATION);
             } else {
-                ApplicationEntity applicationEntity = applicationRepository.findById(tenantId).orElse(null);
+                Application application = applicationRepository.findById(tenantId).orElse(null);
 
                 //Abort requests with invalid tenantIds
-                if (applicationEntity == null) {
-                    requestContext.abortWith(
-                            Response.status(Response.Status.FORBIDDEN)
-                                    .entity("Invalid Tenant Provided")
-                                    .build()
-                    );
-                    return;
+                if (application == null) {
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid Tenant Provided");
                 }
-                TenantContext.setCurrentTenant(modelMapper.map(applicationEntity, Application.class));
+                TenantContext.setCurrentTenant(modelMapper.map(application, ApplicationDTO.class));
             }
+
+            filterChain.doFilter(servletRequest, servletResponse);
         } catch (Exception e) {
             log.error("Problem routing to specified tenant {}. Trace: ", tenantId, e);
-            requestContext.abortWith(
-                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                            .entity(String.format("Problem routing to specified tenant %s", tenantId))
-                            .build()
-            );
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Problem routing to specified tenant");
         }
     }
 
