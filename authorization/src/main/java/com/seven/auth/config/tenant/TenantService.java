@@ -1,7 +1,6 @@
 package com.seven.auth.config.tenant;
 
 import com.hcb.services.authshield.accessconstraints.AccessConstraints;
-import com.hcb.services.authshield.config.FlywayUtils;
 import com.hcb.services.authshield.pojos.AssetType;
 import com.hcb.services.authshield.util.EntityGenerator;
 import com.hcb.services.authshield.util.SQLExecutor;
@@ -9,7 +8,10 @@ import com.hcb.services.authshield.util.Validator;
 import com.seven.auth.application.Application;
 import com.seven.auth.application.ApplicationDTO;
 import com.seven.auth.application.ApplicationRepository;
+import com.seven.auth.application.ApplicationRequest;
 import com.seven.auth.config.FlywayUtil;
+import com.seven.auth.domain.DomainDTO;
+import com.seven.auth.domain.DomainRequest;
 import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.exception.ClientException;
 import com.seven.auth.exception.ConflictException;
@@ -19,7 +21,6 @@ import org.flywaydb.core.Flyway;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.stereotype.Service;
 
@@ -43,20 +44,21 @@ public class TenantService {
     private final TenantConnectionProvider tenantConnectionProvider;
     private final EntityManager entityManager;
     private final ModelMapper modelMapper;
-
-    @Value("${spring.datasource.username}")
-    private String localDataSourceUsername;
-    @Value("${spring.datasource.password}")
-    private String localDataSourcePassword;
-    @Value("${spring.datasource.driver-class-name}")
-    private String localDataSourceDriverClassName;
+//
+//    @Value("${spring.datasource.username}")
+//    private String localDataSourceUsername;
+//    @Value("${spring.datasource.password}")
+//    private String localDataSourcePassword;
+//    @Value("${spring.datasource.driver-class-name}")
+//    private String localDataSourceDriverClassName;
 
     public TenantService(ApplicationRepository applicationRepository,
-                         FlywayUtil flywayUtil,
+                         FlywayUtil flywayUtil, TenantConnectionProvider tenantConnectionProvider,
                          EntityManager entityManager,
                          ModelMapper modelMapper) {
         this.applicationRepository = applicationRepository;
         this.flywayUtil = flywayUtil;
+        this.tenantConnectionProvider = tenantConnectionProvider;
         this.entityManager = entityManager;
         this.modelMapper = modelMapper;
     }
@@ -70,68 +72,53 @@ public class TenantService {
         return dataSourceBuilder.build();
     }
 
-    public ApplicationDTO register(AccessConstraints accessConstraints) throws AuthorizationException {
+    public ApplicationDTO register(ApplicationRequest.Create request) throws AuthorizationException {
         try {
-            String serviceName = accessConstraints.getServiceName();
-            String orgId = accessConstraints.getOrgId();
+            String appName = request.getName();
 
-            log.info("Registering new service: {}", serviceName);
-
-            //Check if service name and orgId was provided
-            if (StringUtils.isBlank(serviceName) || StringUtils.isBlank(orgId)) {
-                log.info("Service name or org id is missing");
-                throw new ConflictException("Service name or org id is missing");
-            }
+            log.info("Registering new application: {}", appName);
 
             //Start at default schema, check if a service by this name already exists
-            Application application = applicationRepository.findByServiceName(serviceName).orElse(null);
+            Application application = applicationRepository.findByName(appName).orElse(null);
             if (application == null) {
-                application = provisionSchema(accessConstraints);
+                application = provisionSchema(request);
             }
 
             //Return service schema
             ApplicationDTO applicationDTO = modelMapper.map(application, ApplicationDTO.class);
-            log.info("Service: {} registered successfully with tenantId (serviceSchemaId): {}", serviceMetadata.getServiceName(), serviceMetadata.getId());
+            log.info("Service: {} registered successfully with tenantId: {}", applicationDTO.name(), applicationDTO.id());
 
             return applicationDTO;
         } catch (AuthorizationException e) {
-            log.error("Authshield exception registering service {}; Message: {}", accessConstraints.getServiceName(), e.getMessage());
+            log.error("Authorization exception registering service {}; Message: {}", request.getName(), e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("Error registering service {}; Trace: {}", accessConstraints.getServiceName(), e);
+            log.error("Error registering service {}; Trace:", request.getName(), e);
             throw new ClientException(e.getMessage());
         }
     }
 
-    private Application provisionSchema(AccessConstraints accessConstraints) throws AuthorizationException {
+    private Application provisionSchema(ApplicationRequest.Create request) throws AuthorizationException {
         try {
-            log.info("Provisioning new schema for service: {}", accessConstraints.getServiceName());
+            log.info("Provisioning new schema for service: {}", request.getName());
+            List<DomainRequest.Create> domains = request.getDomains();
 
-            List<AssetType> assetTypes = accessConstraints.getAssetTypes();
-
-            //Validate format of AssetType AccessConstraints provided
-            Validator.validateAssetTypesFormat(assetTypes, log);
+            //Validate format of Domain AccessConstraints provided
+            Validator.validateDomainsFormat(domains, log);
 
             // Commence operations to Remote DB, provision authshield managed schema and asset types there
-            pingRemoteDB(accessConstraints);
+            pingRemoteDB(request);
 
-            Application application = EntityGenerator.generateApplication(accessConstraints);
+            Application application = EntityGenerator.generateApplication(request);
             applicationRepository.saveAndFlush(application);
 
-            log.info("Provisioned new schema: {}", accessConstraints.getSchemaName());
+            log.info("Provisioned new schema: {}", request.getSchemaName());
             return application;
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-            log.error("Null Pointer Exception encountered while provisioning schema . Request: {}", accessConstraints);
-            throw new ClientException(String.format("Null value encountered while provisioning schema; Request: %s", accessConstraints));
-        } catch (URISyntaxException e) {
-            log.error("URISyntaxException provisioning schema. DB URL: {} . Trace: {}", accessConstraints.getDbUrl(), e);
-            throw new ClientException(String.format("Incorrectly formatted DB URL: %s", accessConstraints.getDbUrl()));
         } catch (SQLException e) {
             log.error("SQLException trying to provision schema. Message: {}", e.getMessage());
             throw new ClientException("Unable to provision schema. Make sure the database specified exists, is running and that all table, schema and column names specified exist in the database");
         } catch (AuthorizationException e) {
-            log.error("AuthshieldException trying to provision schema. Message: {}", e.getMessage());
+            log.error("AuthorizationException trying to provision schema. Message: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
             log.error("Error trying to provision schema. Message: {}", e.getMessage());
@@ -159,7 +146,7 @@ public class TenantService {
 
             //Create and migrate new schema
             tenantFlyway.migrate();
-            log.info("Authshield managed schema: {} created successfully in DB: {}", accessConstraints.getSchemaName(), accessConstraints.getDbName());
+            log.info("Authorization managed schema: {} created successfully in DB: {}", accessConstraints.getSchemaName(), accessConstraints.getDbName());
 
             //Open a connection to the DB and begin the Access Constraints provisioning process
             try (Connection remoteDbConnection = remoteDataSource.getConnection()) {
