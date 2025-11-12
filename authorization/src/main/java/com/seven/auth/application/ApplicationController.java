@@ -24,20 +24,20 @@ public class ApplicationController {
 
     @GetMapping
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "applicationId") UUID id)  throws AuthorizationException {
-        ApplicationDTO applicationDTO = applicationService.get(id);
-        return ok(applicationDTO);
+        ApplicationDTO.Record record = applicationService.get(id);
+        return ok(record);
     }
 
     @GetMapping
-    public ResponseEntity <Response> getResources(Pagination pagination, ApplicationRequest.Filter applicationFilter)  throws AuthorizationException {
-        Page<ApplicationDTO> applicationDTOs = applicationService.getAll(pagination, applicationFilter);
+    public ResponseEntity <Response> getResources(Pagination pagination, ApplicationDTO.Filter applicationFilter)  throws AuthorizationException {
+        Page<ApplicationDTO.Record> applicationDTOs = applicationService.getAll(pagination, applicationFilter);
         return ok(applicationDTOs);
     }
 
     @PostMapping
-    public ResponseEntity <Response> createResource(@Valid @RequestBody ApplicationRequest.Create request) throws AuthorizationException {
-        ApplicationDTO applicationDTO = applicationService.create(request);
-        return ok(applicationDTO);
+    public ResponseEntity <Response> createResource(@Valid @RequestBody ApplicationDTO.Create create) throws AuthorizationException {
+        ApplicationDTO.Record record = applicationService.create(create);
+        return ok(record);
     }
     
     @DeleteMapping("{applicationId}")

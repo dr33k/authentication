@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
-import lombok.Data;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
@@ -64,7 +63,7 @@ public class AccountDTO {
     ){}
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record Response(
+    public record Record(
             String firstName,
             String lastName,
             String phoneNo,

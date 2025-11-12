@@ -1,6 +1,6 @@
 package com.seven.auth.role;
 
-import com.seven.auth.Pagination;
+import com.seven.auth.util.Pagination;
 import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.util.response.Response;
 import jakarta.validation.Valid;
@@ -24,22 +24,28 @@ public class RoleController {
 
     @GetMapping
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "roleId") UUID id)  throws AuthorizationException {
-        RoleDTO roleDTO = roleService.get(id);
-        return ok(roleDTO);
+        RoleDTO.Record roleRecord = roleService.get(id);
+        return ok(roleRecord);
     }
 
     @GetMapping
-    public ResponseEntity <Response> getResources(Pagination pagination, RoleRequest.Filter roleFilter)  throws AuthorizationException {
-        Page<RoleDTO> roleDTOs = roleService.getAll(pagination, roleFilter);
-        return ok(roleDTOs);
+    public ResponseEntity <Response> getResources(Pagination pagination, RoleDTO.Filter roleFilter)  throws AuthorizationException {
+        Page<RoleDTO.Record> roleRecords = roleService.getAll(pagination, roleFilter);
+        return ok(roleRecords);
     }
 
     @PostMapping
-    public ResponseEntity <Response> createResource(@Valid @RequestBody RoleRequest.Create request) throws AuthorizationException {
-        RoleDTO roleDTO = roleService.create(request);
-        return ok(roleDTO);
+    public ResponseEntity <Response> createResource(@Valid @RequestBody RoleDTO.Create request) throws AuthorizationException {
+        RoleDTO.Record roleRecord = roleService.create(request);
+        return ok(roleRecord);
     }
 
+//    @PutMapping("/{roleId}")
+//    public ResponseEntity <Response> updateResource(@Valid @NotNull @PathVariable(value = "roleId") UUID id, @Valid @RequestBody RoleDTO.Update request) {
+//       RoleDTO.Record roleRecord = roleService.update(id, request);
+//        return ok(roleRecord);
+//    }
+    
     @DeleteMapping("{roleId}")
     public ResponseEntity <Response> deleteResource(@Valid @NotNull @PathVariable(value = "roleId") UUID id) throws AuthorizationException {
         roleService.delete(id);

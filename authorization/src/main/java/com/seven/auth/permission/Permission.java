@@ -1,4 +1,4 @@
-package com.seven.auth.domain;
+package com.seven.auth.permission;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
@@ -10,10 +10,10 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table(name = "auth_domain")
+@Table(name = "auth_permission")
 @Data
 @ToString
-public class Domain {
+public class Permission {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -32,15 +32,15 @@ public class Domain {
     @Column(nullable = false)
     private ZonedDateTime dateUpdated;
 
-    public Domain() {
+    public Permission() {
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Domain domain = (Domain) o;
-        return Objects.equals(id, domain.id);
+        Permission permission = (Permission) o;
+        return Objects.equals(id, permission.id);
     }
 
     @Override

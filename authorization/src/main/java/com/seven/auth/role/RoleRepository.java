@@ -8,5 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface RoleRepository extends JpaRepository<Role, UUID>, JpaSpecificationExecutor<Role> {
-    public Boolean existsByName(String name);
+    Boolean existsByName(String name);
 }

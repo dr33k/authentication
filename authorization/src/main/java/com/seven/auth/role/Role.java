@@ -1,5 +1,4 @@
 package com.seven.auth.role;
-
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;

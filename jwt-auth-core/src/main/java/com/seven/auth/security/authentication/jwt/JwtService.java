@@ -69,7 +69,7 @@ public class JwtService {
         return claims.getExpiration().before(new Date());
     }
 
-    public AccountDTO register(AccountRequest.Create request) {
+    public AuthDTO register(AccountDTO.Create request) {
         try {
             AccountRecord record = accountService.create(request);
             String token = generateToken(record.email(),Map.of()
@@ -77,7 +77,7 @@ public class JwtService {
 //                            "privileges", record.role().privileges)
             );
 
-            return AccountDTO.builder().data(record).token(token).build();
+            return AuthDTO.builder().data(record).token(token).build();
         } catch (ResponseStatusException e) {
             log.error("ResponseStatusException; Unable to register account {}. Message: ", request.getEmail(), e);
             throw e;
@@ -87,14 +87,14 @@ public class JwtService {
         }
     }
 
-    public AccountDTO login(JwtLoginRequest request) {
+    public AuthDTO login(JwtLoginRequest request) {
         try {
             Account account = (Account) authenticationProvider.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())).getPrincipal();
             String token = generateToken(request.getUsername(), Map.of()
 //                    Map.of("role", account.getRole().name(),
 //                    "privileges", account.getRole().privileges)
             );
-            return AccountDTO.builder().data(AccountRecord.copy(account)).token(token).build();
+            return AuthDTO.builder().data(AccountRecord.copy(account)).token(token).build();
 
         } catch (ResponseStatusException e) {
             log.error("ResponseStatusException; Unable to login {}. Message: ", request.getUsername(), e);

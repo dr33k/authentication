@@ -4,6 +4,6 @@ import lombok.Builder;
 
 @Builder
 public class AuthDTO {
-    public AccountDTO.Response data;
+    public AccountDTO.Record data;
     public String token;
 }

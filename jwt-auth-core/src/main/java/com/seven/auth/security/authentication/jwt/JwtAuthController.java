@@ -22,14 +22,14 @@ public class JwtAuthController {
     }
 
     @PostMapping(value = "/register", produces = "application/json", consumes = "application/json")
-    public ResponseEntity<Response> createResource(@Valid @RequestBody AccountRequest.Create request) {
-            AccountDTO userDTO = jwtService.register(request);
+    public ResponseEntity<Response> createResource(@Valid @RequestBody AccountDTO.Create request) {
+            AuthDTO userDTO = jwtService.register(request);
             return created(userDTO.data, userDTO.token);
     }
 
     @PostMapping(value = "/login", produces = "application/json", consumes = "application/json")
     public ResponseEntity<Response> login(@Valid @RequestBody JwtLoginRequest request){
-        AccountDTO userDTO = jwtService.login(request);
+        AuthDTO userDTO = jwtService.login(request);
         return ok(userDTO.data, userDTO.token);
     }
 }

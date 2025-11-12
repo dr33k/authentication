@@ -18,9 +18,9 @@ public class AuthorizationHandlerInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler){
         try {
-            var jwtSubject = request.getAttribute("subject");
-            var jwtRole = request.getAttribute("role");
-            ArrayList<String> jwtPrivileges = (ArrayList<String>) (request.getAttribute("privileges"));
+            String tokenSubject = (String) request.getAttribute("subject");
+            Set<String> tokenRoles = (Set<String>) request.getAttribute("roles");
+            Set<String> tokenPermissions = (Set<String>)request.getAttribute("permissions");
 
             if (handler instanceof HandlerMethod) {
                 HandlerMethod handlerMethod = (HandlerMethod) handler;
@@ -29,12 +29,10 @@ public class AuthorizationHandlerInterceptor implements HandlerInterceptor {
 
                 if (authorize == null) return true;
 
-                Set<String> roles = Arrays.stream(authorize.roles()).collect(Collectors.toSet());
-                Set<String> privileges = Arrays.stream(authorize.privileges()).collect(Collectors.toSet());
+                Set<String> annRoles = Arrays.stream(authorize.roles()).collect(Collectors.toSet());
+                Set<String> annPermissions = Arrays.stream(authorize.privileges()).collect(Collectors.toSet());
 
-                if (roles.contains(jwtRole) || jwtPrivileges.stream().anyMatch(privileges::contains))
-                    return  true;
-                else throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+                return tokenRoles.stream().anyMatch(annRoles::contains) || tokenPermissions.stream().anyMatch(annPermissions::contains);
             }
             else if (handler instanceof ResourceHttpRequestHandler) return true;
 

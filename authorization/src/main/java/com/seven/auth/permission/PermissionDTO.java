@@ -1,4 +1,4 @@
-package com.seven.auth.role;
+package com.seven.auth.permission;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotBlank;
@@ -11,7 +11,7 @@ import org.springframework.validation.annotation.Validated;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-public class RoleDTO {
+public class PermissionDTO {
 
     @Validated
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -19,6 +19,8 @@ public class RoleDTO {
         @NotBlank(message = "Required field")
         @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
         String name,
+        @NotNull(message = "Required field")
+        PermissionType type,
         @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Description must be at least 2 characters long")
         String description
     ){}
@@ -26,12 +28,12 @@ public class RoleDTO {
     @Validated
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record Update(
-        @NotBlank(message = "Required field")
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
-        String name,
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Description must be at least 2 characters long")
-        String description
-        ){}
+            @NotBlank(message = "Required field")
+            @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
+            String name,
+            @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Description must be at least 2 characters long")
+            String description
+    ){}
 
     public record Filter(
         String name,
@@ -46,4 +48,6 @@ public class RoleDTO {
             ZonedDateTime dateCreated,
             ZonedDateTime dateUpdated
     ) { }
+
+    public enum PermissionType{CREATE, READ, UPDATE, DELETE}
 }

@@ -1,8 +1,8 @@
 package com.seven.auth.account;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seven.auth.util.Pagination;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,18 +26,18 @@ public class AccountService implements UserDetailsService {
     private final AccountRepository accountRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final Authentication authentication;
-    private final ObjectMapper objectMapper;
+    private final ModelMapper modelMapper;
 
     public AccountService(AccountRepository accountRepository,
                           BCryptPasswordEncoder passwordEncoder,
-                          Authentication authentication, ObjectMapper objectMapper) {
+                          Authentication authentication, ModelMapper modelMapper) {
         this.accountRepository = accountRepository;
         this.bCryptPasswordEncoder = passwordEncoder;
         this.authentication = authentication;
-        this.objectMapper = objectMapper;
+        this.modelMapper = modelMapper;
     }
 
-    public Page<AccountDTO.Response> getAll(Pagination pagination, AccountDTO.Filter accountFilter) {
+    public Page<AccountDTO.Record> getAll(Pagination pagination, AccountDTO.Filter accountFilter) {
         try {
             log.info("Fetching accounts: limit {}, offset {}", pagination.getLimit(), pagination.getOffset());
             Pageable pageable = PageRequest.of(pagination.getLimit(), pagination.getOffset(),
@@ -46,22 +46,22 @@ public class AccountService implements UserDetailsService {
                             pagination.getSortField() == null ? "dateCreated" : pagination.getSortField()
                     ));
 
-            return accountRepository.findAll(AccountSearchSpecification.getAllAndFilter(accountFilter), pageable).map(account -> objectMapper.convertValue(account, AccountDTO.Response.class));
+            return accountRepository.findAll(AccountSearchSpecification.getAllAndFilter(accountFilter), pageable).map(account -> modelMapper.map(account, AccountDTO.Record.class));
         } catch (Exception e) {
             log.error("Unable to fetch accounts. Message: ", e);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
-    public AccountDTO.Response get(UUID id) {
+    public AccountDTO.Record get(UUID id) {
         try {
             log.info("Fetching account: {}", id);
             Account accountFromDb = accountRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "This account does not exist or has been deleted"));
 
-            AccountDTO.Response response = objectMapper.convertValue(accountFromDb, AccountDTO.Response.class);
+            AccountDTO.Record record = modelMapper.map(accountFromDb, AccountDTO.Record.class);
             log.info("Account {} successfully retrieved", id);
-            return response;
+            return record;
         } catch (ResponseStatusException e) {
             log.error("ResponseStatusException; Unable to fetch account: {}. Message: ", id, e);
             throw e;
@@ -72,7 +72,7 @@ public class AccountService implements UserDetailsService {
     }
 
     @Transactional
-    public AccountDTO.Response create(AccountDTO.Create accountCreateRequest) {
+    public AccountDTO.Record create(AccountDTO.Create accountCreateRequest) {
         try {
             log.info("Creating account: {}", accountCreateRequest.email());
             if (accountRepository.existsByEmail(accountCreateRequest.email()))
@@ -86,7 +86,7 @@ public class AccountService implements UserDetailsService {
             account = accountRepository.save(account);
             log.info("Account: {} created successfully", account.getId());
 
-            return objectMapper.convertValue(account, AccountDTO.Response.class);
+            return modelMapper.map(account, AccountDTO.Record.class);
         } catch (ResponseStatusException e) {
             log.error("ResponseStatusException; Unable to create account: {}. Message: ", accountCreateRequest.email(), e);
             throw e;
@@ -115,7 +115,7 @@ public class AccountService implements UserDetailsService {
     }
 
     @Transactional
-    public AccountDTO.Response update(UUID id, AccountDTO.Update accountUpdateRequest) {
+    public AccountDTO.Record update(UUID id, AccountDTO.Update accountUpdateRequest) {
         try {
             log.info("Modifying account: {}", id);
             Account account = accountRepository.findById(id)
@@ -125,7 +125,7 @@ public class AccountService implements UserDetailsService {
             accountRepository.save(account);
             log.info("Account: {} modified successfully", account.getId());
 
-            return objectMapper.convertValue(account, AccountDTO.Response.class);
+            return modelMapper.map(account, AccountDTO.Record.class);
         } catch (ResponseStatusException e) {
             log.error("ResponseStatusException; Unable to modify account: {}. Message: ", id, e);
             throw e;

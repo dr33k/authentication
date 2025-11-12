@@ -1,12 +1,11 @@
 package com.seven.auth.role;
 
-import com.seven.auth.Pagination;
-import com.seven.auth.application.ApplicationDTO;
-import com.seven.auth.config.tenant.TenantContext;
+import com.seven.auth.config.threadlocal.TenantContext;
 import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.exception.ClientException;
 import com.seven.auth.exception.ConflictException;
 import com.seven.auth.exception.NotFoundException;
+import com.seven.auth.util.Pagination;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
 import org.slf4j.Logger;
@@ -31,10 +30,7 @@ public class RoleService{
         this.roleRepository = roleRepository;
         this.modelMapper = modelMapper;
 
-        //Purpose:
-        // When a request POJO is recieved, skip the id field when mapping into the entity. We should always generate an id or use the one gotten from the DB in the case of an update;
-        // Skip the request's dateCreated field
-        TypeMap<RoleRequest, Role> roleToEntityTypeMap = modelMapper.createTypeMap(RoleRequest.class, Role.class);
+        TypeMap<RoleDTO.Create, Role> roleToEntityTypeMap = modelMapper.createTypeMap(RoleDTO.Create.class, Role.class);
         roleToEntityTypeMap.addMappings(mapper -> {
             mapper.skip(Role::setId);
             mapper.skip(Role::setDateCreated);
@@ -42,9 +38,9 @@ public class RoleService{
         });
     }
 
-    public Page<RoleDTO> getAll(Pagination pagination, RoleRequest.Filter filter) throws AuthorizationException {
-        ApplicationDTO targetApplication = TenantContext.getCurrentTenant();
-        log.info("Retrieving Roles for Application: {}", targetApplication.id());
+    public Page<RoleDTO.Record> getAll(Pagination pagination, RoleDTO.Filter filter) throws AuthorizationException {
+        String tenant = TenantContext.getCurrentTenant();
+        log.info("Retrieving Rolesfor Tenant: {}", tenant);
         try {
             Pageable pageable = PageRequest.of(pagination.getOffset(), pagination.getLimit(),
                     Sort.by(
@@ -52,42 +48,42 @@ public class RoleService{
                             pagination.getSortField() == null ? "dateCreated" : pagination.getSortField()
                     )
             );
-            Page<RoleDTO> rolesResponse = roleRepository
+            Page<RoleDTO.Record> rolesResponse = roleRepository
                     .findAll(RoleSearchSpecification.getAllAndFilter(filter), pageable)
-                    .map(roleEntity -> modelMapper.map(roleEntity, RoleDTO.class));
+                    .map(roleEntity -> modelMapper.map(roleEntity, RoleDTO.Record.class));
 
             log.info("Roles retrieved successfully");
             return rolesResponse;
         } catch (Exception e) {
-            log.error("Exception retrieving Roles for Application: {} in service layer. Trace: {}", targetApplication.id(), e);
+            log.error("Exception retrieving Roles for Tenant: {} in service layer. Trace:", tenant, e);
             throw new ClientException(e.getMessage());
         }
     }
 
-    public RoleDTO get(UUID id) throws AuthorizationException {
-        ApplicationDTO targetApplication = TenantContext.getCurrentTenant();
-        log.info("Retrieving Role: {} for  Application: {}", id, targetApplication.id());
+    public RoleDTO.Record get(UUID id) throws AuthorizationException {
+        String tenant = TenantContext.getCurrentTenant();
+        log.info("Retrieving Role: {} for Tenant: {}", id, tenant);
         try {
             Role roleEntity = roleRepository.findById(id).orElseThrow(() -> {
                 log.error("Role: {} not found", id);
                 return new NotFoundException(String.format("Role: %s not found", id));
             });
 
-            RoleDTO response = modelMapper.map(roleEntity, RoleDTO.class);
+            RoleDTO.Record response = modelMapper.map(roleEntity, RoleDTO.Record.class);
             log.info("Role retrieved successfully");
             return response;
         } catch (AuthorizationException e) {
-            log.error("AuthorizationException retrieving role in Application: {}. Reason: {}", targetApplication.id(), e.getMessage());
+            log.error("AuthorizationException retrieving role in Tenant: {}. Reason: {}", tenant, e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("Exception retrieving Role: {} for Application: {} in service layer. Trace: {}", id, targetApplication.id(), e);
+            log.error("Exception retrieving Role: {} for Tenant: {} in service layer. Trace:", id, tenant, e);
             throw new ClientException(e.getMessage());
         }
     }
 
     public void delete(UUID id) throws AuthorizationException {
-        ApplicationDTO targetApplication = TenantContext.getCurrentTenant();
-        log.info("Deleting Role: {} for  Application: {}", id, targetApplication.id());
+        String tenant = TenantContext.getCurrentTenant();
+        log.info("Deleting Role: {} for Tenant: {}", id, tenant);
         try {
             roleRepository.deleteById(id);
             log.info("Role deleted successfully");
@@ -95,32 +91,32 @@ public class RoleService{
             log.error("Role {} not found.", id);
             throw new NotFoundException(String.format("Role %s not found", id));
         } catch (Exception e) {
-            log.error("Exception deleting Role: {} for Application: {} in service layer. Trace: {}", id, targetApplication.id(), e);
+            log.error("Exception deleting Role: {} for Tenant: {} in service layer. Trace:", id, tenant, e);
             throw new ClientException(e.getMessage());
         }
     }
 
-    public RoleDTO create(RoleRequest.Create request) throws AuthorizationException {
-        ApplicationDTO targetApplication = TenantContext.getCurrentTenant();
-        log.info("Registering Roles for Application: {}", targetApplication.id());
+    public RoleDTO.Record create(RoleDTO.Create request) throws AuthorizationException {
+        String tenant = TenantContext.getCurrentTenant();
+        log.info("Registering Role for Tenant: {}", tenant);
         try {
             //Validate unique name for an organisation
-            if (roleRepository.existsByName(request.getName())) {
-                log.error("Role with name '{}' already exists", request.getName());
-                throw new ConflictException(String.format("Role with name '%s' already exists", request.getName()));
+            if (roleRepository.existsByName(request.name())) {
+                log.error("Role with name '{}' already exists", request.name());
+                throw new ConflictException(String.format("Role with name '%s' already exists", request.name()));
             }
 
             Role roleEntity = modelMapper.map(request, Role.class);
             roleEntity = roleRepository.save(roleEntity);
-            RoleDTO response = modelMapper.map(roleEntity, RoleDTO.class);
+            RoleDTO.Record response = modelMapper.map(roleEntity, RoleDTO.Record.class);
 
             log.info("Role {} registered successfully with id {}", roleEntity.getName(), roleEntity.getId());
             return response;
         } catch (AuthorizationException e) {
-            log.error("AuthorizationException registering role in Application: {}. Reason: {}", targetApplication.id(), e.getMessage());
+            log.error("AuthorizationException registering role in Tenant: {}. Reason: {}", tenant, e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("Error registering role in Application: {}. Trace: ", targetApplication.id(), e);
+            log.error("Error registering role in Tenant: {}. Trace: ", tenant, e);
             throw new ClientException(e.getMessage());
         }
     }

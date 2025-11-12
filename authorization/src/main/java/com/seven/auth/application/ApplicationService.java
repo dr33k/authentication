@@ -1,7 +1,6 @@
 package com.seven.auth.application;
 
 import com.seven.auth.util.Pagination;
-import com.seven.auth.config.tenant.TenantService;
 import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.exception.ClientException;
 import com.seven.auth.exception.NotFoundException;
@@ -34,7 +33,7 @@ public class ApplicationService{
         //Purpose:
         // When a request POJO is received, skip the id field when mapping into the entity. We should always generate an id or use the one gotten from the DB in the case of an update;
         // Skip the request's dateCreated field
-        TypeMap<ApplicationRequest, Application> applicationToEntityTypeMap = modelMapper.createTypeMap(ApplicationRequest.class, Application.class);
+        TypeMap<ApplicationDTO, Application> applicationToEntityTypeMap = modelMapper.createTypeMap(ApplicationDTO.class, Application.class);
         applicationToEntityTypeMap.addMappings(mapper -> {
             mapper.skip(Application::setId);
             mapper.skip(Application::setDateCreated);
@@ -42,7 +41,7 @@ public class ApplicationService{
         });
     }
 
-    public Page<ApplicationDTO> getAll(Pagination pagination, ApplicationRequest.Filter filter) throws AuthorizationException {
+    public Page<ApplicationDTO.Record> getAll(Pagination pagination, ApplicationDTO.Filter filter) throws AuthorizationException {
         log.info("Retrieving Applications");
         try {
             Pageable pageable = PageRequest.of(pagination.getOffset(), pagination.getLimit(),
@@ -51,19 +50,19 @@ public class ApplicationService{
                             pagination.getSortField() == null ? "dateCreated" : pagination.getSortField()
                     )
             );
-            Page<ApplicationDTO> applicationsResponse = applicationRepository
+            Page<ApplicationDTO.Record> appRecords = applicationRepository
                     .findAll(ApplicationSearchSpecification.getAllAndFilter(filter), pageable)
-                    .map(applicationEntity -> modelMapper.map(applicationEntity, ApplicationDTO.class));
+                    .map(applicationEntity -> modelMapper.map(applicationEntity, ApplicationDTO.Record.class));
 
             log.info("Applications retrieved successfully");
-            return applicationsResponse;
+            return appRecords;
         } catch (Exception e) {
             log.error("Exception retrieving Applications in service layer. Trace:", e);
             throw new ClientException(e.getMessage());
         }
     }
 
-    public ApplicationDTO get(UUID id) throws AuthorizationException {
+    public ApplicationDTO.Record get(UUID id) throws AuthorizationException {
         log.info("Retrieving Application: {}", id);
         try {
             Application applicationEntity = applicationRepository.findById(id).orElseThrow(() -> {
@@ -71,9 +70,9 @@ public class ApplicationService{
                 return new NotFoundException(String.format("Application: %s not found", id));
             });
 
-            ApplicationDTO response = modelMapper.map(applicationEntity, ApplicationDTO.class);
+            ApplicationDTO.Record record = modelMapper.map(applicationEntity, ApplicationDTO.Record.class);
             log.info("Application retrieved successfully");
-            return response;
+            return record;
         } catch (AuthorizationException e) {
             log.error("AuthorizationException retrieving Application: {}. Reason: {}", id, e.getMessage());
             throw e;
@@ -86,6 +85,11 @@ public class ApplicationService{
     public void delete(UUID id) throws AuthorizationException {
         log.info("Deleting Application: {} ", id);
         try {
+            Application applicationEntity = applicationRepository.findById(id).orElseThrow(() -> {
+                log.error("Application: {} not found", id);
+                return new NotFoundException(String.format("Application: %s not found", id));
+            });
+            tenantService.dropSchema(applicationEntity);
             applicationRepository.deleteById(id);
             log.info("Application deleted successfully");
         } catch (EmptyResultDataAccessException e) {
@@ -97,9 +101,8 @@ public class ApplicationService{
         }
     }
 
-    public ApplicationDTO create(ApplicationRequest.Create request) throws AuthorizationException {
-//        tenantService.register();
-        return null;
+    public ApplicationDTO.Record create(ApplicationDTO.Create create) throws AuthorizationException {
+        return tenantService.register(create);
     }
 }
 
