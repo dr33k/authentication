@@ -1,6 +1,6 @@
 package com.seven.auth.application;
 
-import com.seven.auth.Pagination;
+import com.seven.auth.util.Pagination;
 import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.util.response.Response;
 import jakarta.validation.Valid;

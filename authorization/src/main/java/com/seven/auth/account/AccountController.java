@@ -23,13 +23,13 @@ public class AccountController {
     @GetMapping
     @Authorize(roles = {"ROLE_ADMIN", "ADMIN"})
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "accountId") UUID id) {
-        AccountRecord accountRecord = accountService.get(id); //Signifies account owner access
+        AccountDTO.Response accountRecord = accountService.get(id);
         return ok(accountRecord);
     }
 
     @PutMapping("{accountId}")
-    public ResponseEntity <Response> updateResource(@Valid @NotNull @PathVariable(value = "accountId") UUID id, @Valid @RequestBody AccountRequest.Update request) {
-        AccountRecord accountRecord = accountService.update(id, request);
+    public ResponseEntity <Response> updateResource(@Valid @NotNull @PathVariable(value = "accountId") UUID id, @Valid @RequestBody AccountDTO.Update request) {
+        AccountDTO.Response accountRecord = accountService.update(id, request);
         return ok(accountRecord);
     }
     @DeleteMapping("{accountId}")

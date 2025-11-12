@@ -9,21 +9,21 @@ import java.util.List;
 import java.util.Objects;
 
 public class AccountSearchSpecification {
-    public static Specification<Account> getAllAndFilter(AccountRequest.Filter accountFilter) {
+    public static Specification<Account> getAllAndFilter(AccountDTO.Filter accountFilter) {
         return (root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if(StringUtils.isNotBlank(accountFilter.getName()))
+            if(StringUtils.isNotBlank(accountFilter.name()))
                 predicates.add(criteriaBuilder.or(
-                        criteriaBuilder.like(root.get("firstName" ),"%"+ accountFilter.getName()+"%"),
-                        criteriaBuilder.like(root.get("lastName" ),"%"+ accountFilter.getName()+"%"),
-                        criteriaBuilder.like(root.get("otherName" ),"%"+ accountFilter.getName()+"%")
+                        criteriaBuilder.like(root.get("firstName" ),"%"+ accountFilter.name()+"%"),
+                        criteriaBuilder.like(root.get("lastName" ),"%"+ accountFilter.name()+"%"),
+                        criteriaBuilder.like(root.get("otherName" ),"%"+ accountFilter.name()+"%")
                         )
                 );
-            if(Objects.nonNull(accountFilter.getDateCreatedFrom()))
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("dateCreated"), accountFilter.getDateCreatedFrom()));
-            if(Objects.nonNull(accountFilter.getDateCreatedTo()))
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("dateCreated"), accountFilter.getDateCreatedTo()));
+            if(Objects.nonNull(accountFilter.dateCreatedFrom()))
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("dateCreated"), accountFilter.dateCreatedFrom()));
+            if(Objects.nonNull(accountFilter.dateCreatedTo()))
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("dateCreated"), accountFilter.dateCreatedTo()));
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };

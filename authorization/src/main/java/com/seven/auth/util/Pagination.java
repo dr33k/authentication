@@ -1,4 +1,4 @@
-package com.seven.auth;
+package com.seven.auth.util;
 
 import lombok.Data;
 
