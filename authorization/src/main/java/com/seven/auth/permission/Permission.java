@@ -1,4 +1,5 @@
 package com.seven.auth.permission;
+import com.seven.auth.domain.Domain;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
@@ -24,6 +25,10 @@ public class Permission {
     @Column
     private String description;
 
+    @JoinColumn(name = "domain_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Domain domain;
+
     @CreationTimestamp
     @Column(nullable = false)
     private ZonedDateTime dateCreated;
@@ -31,6 +36,12 @@ public class Permission {
     @UpdateTimestamp
     @Column(nullable = false)
     private ZonedDateTime dateUpdated;
+
+    @Column
+    private String createdBy = "SYSTEM";
+
+    @Column
+    private String updatedBy = "SYSTEM";
 
     public Permission() {
     }

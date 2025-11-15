@@ -1,5 +1,7 @@
 package com.seven.auth.config.schema;
 
+import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.jdbc.connections.spi.DatabaseConnectionInfo;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -26,14 +28,19 @@ public class SchemaTenantConnectionProvider implements MultiTenantConnectionProv
     }
 
     @Override
-    public Connection getConnection(String schemaName) throws SQLException {
+    public DatabaseConnectionInfo getDatabaseConnectionInfo(Dialect dialect) {
+        return MultiTenantConnectionProvider.super.getDatabaseConnectionInfo(dialect);
+    }
+
+    @Override
+    public Connection getConnection(Object schemaName) throws SQLException {
         final Connection connection = dataSource.getConnection();
-        connection.setSchema(schemaName);
+        connection.setSchema((String) schemaName);
         return connection;
     }
 
     @Override
-    public void releaseConnection(String schemaName, Connection connection) throws SQLException {
+    public void releaseConnection(Object schemaName, Connection connection) throws SQLException {
         connection.createStatement().execute("SET SCHEMA 'public';");
         connection.close();
     }

@@ -36,7 +36,9 @@ public class ApplicationDTO {
             String name,
             String description,
             ZonedDateTime dateCreated,
-            ZonedDateTime dateUpdated
+            ZonedDateTime dateUpdated,
+            String createdBy,
+            String updatedBy
     ){
         public String schemaName(){return name;}
     }

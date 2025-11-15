@@ -21,7 +21,7 @@ public class Application {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(name = "schema_name", nullable = false)
     private String schemaName;
 
     @Column
@@ -34,6 +34,12 @@ public class Application {
     @UpdateTimestamp
     @Column(nullable = false)
     private ZonedDateTime dateUpdated;
+
+    @Column
+    private String createdBy = "SYSTEM";
+
+    @Column
+    private String updatedBy = "SYSTEM";
 
     public Application() {
     }

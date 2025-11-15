@@ -48,6 +48,8 @@ public class DomainDTO {
             String name,
             String description,
             ZonedDateTime dateCreated,
-            ZonedDateTime dateUpdated
+            ZonedDateTime dateUpdated,
+            String createdBy,
+            String updatedBy
     ) { }
 }

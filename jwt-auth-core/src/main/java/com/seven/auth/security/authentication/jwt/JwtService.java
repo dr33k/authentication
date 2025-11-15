@@ -5,6 +5,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +27,17 @@ import java.util.Map;
 @ApplicationScope
 public class JwtService {
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
-    @Autowired
-    Environment environment;
-    @Autowired
-    AccountService accountService;
-    @Autowired
-    AuthenticationProvider authenticationProvider;
+    private final Environment environment;
+    final private AccountService accountService;
+    private final AuthenticationProvider authenticationProvider;
+    private final ModelMapper modelMapper;
+
+    public JwtService(Environment environment, AccountService accountService, AuthenticationProvider authenticationProvider, ModelMapper modelMapper) {
+        this.environment = environment;
+        this.accountService = accountService;
+        this.authenticationProvider = authenticationProvider;
+        this.modelMapper = modelMapper;
+    }
 
     public Claims extractClaims(String token) {
         return Jwts.parserBuilder()
@@ -71,7 +77,7 @@ public class JwtService {
 
     public AuthDTO register(AccountDTO.Create request) {
         try {
-            AccountRecord record = accountService.create(request);
+            AccountDTO.Record record = accountService.create(request);
             String token = generateToken(record.email(),Map.of()
 //                    Map.of("role", record.role().name(),
 //                            "privileges", record.role().privileges)
@@ -79,10 +85,10 @@ public class JwtService {
 
             return AuthDTO.builder().data(record).token(token).build();
         } catch (ResponseStatusException e) {
-            log.error("ResponseStatusException; Unable to register account {}. Message: ", request.getEmail(), e);
+            log.error("ResponseStatusException; Unable to register account {}. Message: ", request.email(), e);
             throw e;
         } catch (Exception e) {
-            log.error("Unable to register account {}. Message: ", request.getEmail(), e);
+            log.error("Unable to register account {}. Message: ", request.email(), e);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
@@ -94,7 +100,7 @@ public class JwtService {
 //                    Map.of("role", account.getRole().name(),
 //                    "privileges", account.getRole().privileges)
             );
-            return AuthDTO.builder().data(AccountRecord.copy(account)).token(token).build();
+            return AuthDTO.builder().data(modelMapper.map(account, AccountDTO.Record.class)).token(token).build();
 
         } catch (ResponseStatusException e) {
             log.error("ResponseStatusException; Unable to login {}. Message: ", request.getUsername(), e);

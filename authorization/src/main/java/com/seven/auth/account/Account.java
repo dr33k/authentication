@@ -54,6 +54,12 @@ public class Account implements Serializable, UserDetails {
     @Column(nullable = false)
     private ZonedDateTime dateUpdated;
 
+    @Column
+    private String createdBy = "SYSTEM";
+
+    @Column
+    private String updatedBy = "SYSTEM";
+
     public Account() {
     }
 

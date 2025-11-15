@@ -1,4 +1,4 @@
-package com.seven.auth.util.controllers_advice;
+package com.seven.auth.advice;
 
 import com.seven.auth.exception.*;
 import com.seven.auth.util.response.Response;

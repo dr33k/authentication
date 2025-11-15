@@ -73,6 +73,8 @@ public class AccountDTO {
             LocalDate dateBirth,
             ZonedDateTime dateReg,
             ZonedDateTime dateModified,
+            String createdBy,
+            String updatedBy,
             String message
     ){};
 }

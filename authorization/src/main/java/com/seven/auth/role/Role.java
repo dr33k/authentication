@@ -32,6 +32,12 @@ public class Role {
     @Column(nullable = false)
     private ZonedDateTime dateUpdated;
 
+    @Column
+    private String createdBy = "SYSTEM";
+
+    @Column
+    private String updatedBy = "SYSTEM";
+
     public Role() {
     }
 

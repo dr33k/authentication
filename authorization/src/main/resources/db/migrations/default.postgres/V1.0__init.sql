@@ -6,5 +6,7 @@ CREATE TABLE auth_application (
         description VARCHAR(255) NOT NULL,
         date_created TIMESTAMP NOT NULL,
         date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(255),
+        updated_by VARCHAR(255),
         UNIQUE(name)
 );
