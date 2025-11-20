@@ -51,5 +51,17 @@ public class DomainDTO {
             ZonedDateTime dateUpdated,
             String createdBy,
             String updatedBy
-    ) { }
+    ) {
+        public static Record from(Domain d){
+            return new Record(
+                    d.getId(),
+                    d.getName(),
+                    d.getDescription(),
+                    d.getDateCreated(),
+                    d.getDateUpdated(),
+                    d.getCreatedBy(),
+                    d.getUpdatedBy()
+            );
+        }
+    }
 }

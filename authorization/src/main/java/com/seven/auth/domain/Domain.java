@@ -53,4 +53,17 @@ public class Domain {
     public int hashCode() {
         return Objects.hashCode(id);
     }
+
+    public static Domain from(DomainDTO.Create req){
+        var d = new Domain();
+        d.setName(req.name());
+        d.setDescription(req.description());
+        return d;
+    }
+    public static Domain from(DomainDTO.Update req){
+        var d = new Domain();
+        d.setName(req.name());
+        d.setDescription(req.description());
+        return d;
+    }
 }

@@ -6,8 +6,6 @@ import com.seven.auth.exception.ClientException;
 import com.seven.auth.exception.ConflictException;
 import com.seven.auth.exception.NotFoundException;
 import com.seven.auth.util.Pagination;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -24,11 +22,9 @@ public class DomainService{
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final DomainRepository domainRepository;
-    private final ModelMapper modelMapper;
 
-    public DomainService(DomainRepository domainRepository, ModelMapper modelMapper) {
+    public DomainService(DomainRepository domainRepository) {
         this.domainRepository = domainRepository;
-        this.modelMapper = modelMapper;
     }
 
     public Page<DomainDTO.Record> getAll(Pagination pagination, DomainDTO.Filter filter) throws AuthorizationException {
@@ -43,7 +39,7 @@ public class DomainService{
             );
             Page<DomainDTO.Record> domainsResponse = domainRepository
                     .findAll(DomainSearchSpecification.getAllAndFilter(filter), pageable)
-                    .map(domainEntity -> modelMapper.map(domainEntity, DomainDTO.Record.class));
+                    .map(DomainDTO.Record::from);
 
             log.info("Domains retrieved successfully");
             return domainsResponse;
@@ -62,7 +58,7 @@ public class DomainService{
                 return new NotFoundException(String.format("Domain: %s not found", id));
             });
 
-            DomainDTO.Record response = modelMapper.map(domainEntity, DomainDTO.Record.class);
+            DomainDTO.Record response = DomainDTO.Record.from(domainEntity);
             log.info("Domain retrieved successfully");
             return response;
         } catch (AuthorizationException e) {
@@ -99,9 +95,9 @@ public class DomainService{
                 throw new ConflictException(String.format("Domain with name '%s' already exists", request.name()));
             }
 
-            Domain domainEntity = modelMapper.map(request, Domain.class);
+            Domain domainEntity = Domain.from(request);
             domainEntity = domainRepository.save(domainEntity);
-            DomainDTO.Record response = modelMapper.map(domainEntity, DomainDTO.Record.class);
+            DomainDTO.Record response =  DomainDTO.Record.from(domainEntity);
 
             log.info("Domain {} registered successfully with id {}", domainEntity.getName(), domainEntity.getId());
             return response;
