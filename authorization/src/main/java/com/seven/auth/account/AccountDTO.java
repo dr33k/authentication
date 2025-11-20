@@ -70,11 +70,25 @@ public class AccountDTO {
             String email,
             @JsonIgnore
             String password,
-            LocalDate dateBirth,
-            ZonedDateTime dateReg,
-            ZonedDateTime dateModified,
+            LocalDate dob,
+            ZonedDateTime dateCreated,
+            ZonedDateTime dateUpdated,
             String createdBy,
-            String updatedBy,
-            String message
-    ){};
+            String updatedBy
+    ){
+        public static Record from(Account account){
+            return new Record(
+                    account.getFirstName(),
+                    account.getLastName(),
+                    account.getPhoneNo(),
+                    account.getEmail(),
+                    account.getPassword(),
+                    account.getDob(),
+                    account.getDateCreated(),
+                    account.getDateUpdated(),
+                    account.getCreatedBy(),
+                    account.getUpdatedBy()
+            );
+        }
+    }
 }

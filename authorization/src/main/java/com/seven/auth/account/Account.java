@@ -31,13 +31,13 @@ public class Account implements Serializable, UserDetails {
     @Column(nullable = false)
     private String phoneNo;
 
-    @Column(nullable = false)
+    @Column
     private String phoneNoAlt;
 
     @Column(nullable = false,unique = true)
     private String email;
 
-    @Column(nullable = false,unique = true)
+    @Column(unique = true)
     private String emailAlt;
 
     @Column(nullable = false)
@@ -87,9 +87,6 @@ public class Account implements Serializable, UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-//        SimpleGrantedAuthority sga = new SimpleGrantedAuthority("ROLE_"+this.role.name().toUpperCase());
-//        Set<SimpleGrantedAuthority> sgaSet = Arrays.stream(role.privileges).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
-//        sgaSet.add(sga);
         return null;
     }
     @Override
@@ -115,5 +112,26 @@ public class Account implements Serializable, UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public static Account from(AccountDTO.Create req){
+        Account account = new Account();
+        account.setFirstName(req.firstName());
+        account.setLastName(req.lastName());
+        account.setEmail(req.email());
+        account.setDob(req.dob());
+        account.setPhoneNo(req.phoneNo());
+        account.setPassword(req.password());
+        return account;
+    }
+
+    public static Account from(AccountDTO.Update req){
+        Account account = new Account();
+        account.setFirstName(req.firstName());
+        account.setLastName(req.lastName());
+        account.setDob(req.dob());
+        account.setPhoneNo(req.phoneNo());
+        account.setPassword(req.password());
+        return account;
     }
 }

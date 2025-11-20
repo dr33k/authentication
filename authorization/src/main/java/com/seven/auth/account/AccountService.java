@@ -25,16 +25,11 @@ import java.util.UUID;
 public class AccountService implements UserDetailsService {
     private final AccountRepository accountRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final Authentication authentication;
-    private final ModelMapper modelMapper;
 
     public AccountService(AccountRepository accountRepository,
-                          BCryptPasswordEncoder passwordEncoder,
-                          Authentication authentication, ModelMapper modelMapper) {
+                          BCryptPasswordEncoder passwordEncoder) {
         this.accountRepository = accountRepository;
         this.bCryptPasswordEncoder = passwordEncoder;
-        this.authentication = authentication;
-        this.modelMapper = modelMapper;
     }
 
     public Page<AccountDTO.Record> getAll(Pagination pagination, AccountDTO.Filter accountFilter) {
@@ -46,7 +41,7 @@ public class AccountService implements UserDetailsService {
                             pagination.getSortField() == null ? "dateCreated" : pagination.getSortField()
                     ));
 
-            return accountRepository.findAll(AccountSearchSpecification.getAllAndFilter(accountFilter), pageable).map(account -> modelMapper.map(account, AccountDTO.Record.class));
+            return accountRepository.findAll(AccountSearchSpecification.getAllAndFilter(accountFilter), pageable).map(AccountDTO.Record::from);
         } catch (Exception e) {
             log.error("Unable to fetch accounts. Message: ", e);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -59,7 +54,7 @@ public class AccountService implements UserDetailsService {
             Account accountFromDb = accountRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "This account does not exist or has been deleted"));
 
-            AccountDTO.Record record = modelMapper.map(accountFromDb, AccountDTO.Record.class);
+            AccountDTO.Record record = AccountDTO.Record.from(accountFromDb);
             log.info("Account {} successfully retrieved", id);
             return record;
         } catch (ResponseStatusException e) {
@@ -84,9 +79,10 @@ public class AccountService implements UserDetailsService {
             //Encode password
             account.setPassword(bCryptPasswordEncoder.encode(accountCreateRequest.password()));
             account = accountRepository.save(account);
-            log.info("Account: {} created successfully", account.getId());
+            AccountDTO.Record record = AccountDTO.Record.from(account);
 
-            return modelMapper.map(account, AccountDTO.Record.class);
+            log.info("Account {} successfully created", account.getId());
+            return record;
         } catch (ResponseStatusException e) {
             log.error("ResponseStatusException; Unable to create account: {}. Message: ", accountCreateRequest.email(), e);
             throw e;
@@ -100,11 +96,9 @@ public class AccountService implements UserDetailsService {
     public void delete(UUID id) {
         try {
             log.info("Deleting account: {}", id);
-            Account account = (Account) authentication.getPrincipal();
-            if (account.getId() != id) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account Breach");
 
             accountRepository.deleteById(id);
-            log.info("Account: {} deleted successfully", account.getId());
+            log.info("Account: {} deleted successfully", id);
         } catch (ResponseStatusException e) {
             log.error("ResponseStatusException; Unable to delete account: {}. Message: ", id, e);
             throw e;
@@ -123,9 +117,10 @@ public class AccountService implements UserDetailsService {
 
             BeanUtils.copyProperties(accountUpdateRequest, account);
             accountRepository.save(account);
-            log.info("Account: {} modified successfully", account.getId());
+            AccountDTO.Record record = AccountDTO.Record.from(account);
 
-            return modelMapper.map(account, AccountDTO.Record.class);
+            log.info("Account {} successfully modified", account.getId());
+            return record;
         } catch (ResponseStatusException e) {
             log.error("ResponseStatusException; Unable to modify account: {}. Message: ", id, e);
             throw e;
