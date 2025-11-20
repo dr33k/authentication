@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.security.core.GrantedAuthority;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Table(name = "auth_permission")
 @Data
 @ToString
-public class Permission {
+public class Permission implements GrantedAuthority {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -44,6 +45,11 @@ public class Permission {
     private String updatedBy = "SYSTEM";
 
     public Permission() {
+    }
+
+    @Override
+    public String getAuthority() {
+        return name;
     }
 
     @Override

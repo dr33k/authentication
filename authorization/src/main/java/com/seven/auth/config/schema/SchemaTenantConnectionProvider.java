@@ -12,7 +12,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 @Component
-public class SchemaTenantConnectionProvider implements MultiTenantConnectionProvider {
+public class SchemaTenantConnectionProvider implements MultiTenantConnectionProvider<String> {
 
     @Autowired
     private DataSource dataSource;
@@ -33,14 +33,14 @@ public class SchemaTenantConnectionProvider implements MultiTenantConnectionProv
     }
 
     @Override
-    public Connection getConnection(Object schemaName) throws SQLException {
+    public Connection getConnection(String schemaName) throws SQLException {
         final Connection connection = dataSource.getConnection();
-        connection.setSchema((String) schemaName);
+        connection.setSchema(schemaName);
         return connection;
     }
 
     @Override
-    public void releaseConnection(Object schemaName, Connection connection) throws SQLException {
+    public void releaseConnection(String schemaName, Connection connection) throws SQLException {
         connection.createStatement().execute("SET SCHEMA 'public';");
         connection.close();
     }

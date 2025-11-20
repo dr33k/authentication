@@ -29,13 +29,6 @@ public class PermissionService{
     public PermissionService(PermissionRepository permissionRepository, ModelMapper modelMapper) {
         this.permissionRepository = permissionRepository;
         this.modelMapper = modelMapper;
-
-        TypeMap<PermissionDTO.Create, Permission> permissionToEntityTypeMap = modelMapper.createTypeMap(PermissionDTO.Create.class, Permission.class);
-        permissionToEntityTypeMap.addMappings(mapper -> {
-            mapper.skip(Permission::setId);
-            mapper.skip(Permission::setDateCreated);
-            mapper.skip(Permission::setDateUpdated);
-        });
     }
 
     public Page<PermissionDTO.Record> getAll(Pagination pagination, PermissionDTO.Filter filter) throws AuthorizationException {

@@ -29,13 +29,6 @@ public class RoleService{
     public RoleService(RoleRepository roleRepository, ModelMapper modelMapper) {
         this.roleRepository = roleRepository;
         this.modelMapper = modelMapper;
-
-        TypeMap<RoleDTO.Create, Role> roleToEntityTypeMap = modelMapper.createTypeMap(RoleDTO.Create.class, Role.class);
-        roleToEntityTypeMap.addMappings(mapper -> {
-            mapper.skip(Role::setId);
-            mapper.skip(Role::setDateCreated);
-            mapper.skip(Role::setDateUpdated);
-        });
     }
 
     public Page<RoleDTO.Record> getAll(Pagination pagination, RoleDTO.Filter filter) throws AuthorizationException {

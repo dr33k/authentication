@@ -29,13 +29,6 @@ public class DomainService{
     public DomainService(DomainRepository domainRepository, ModelMapper modelMapper) {
         this.domainRepository = domainRepository;
         this.modelMapper = modelMapper;
-
-        TypeMap<DomainDTO, Domain> domainToEntityTypeMap = modelMapper.createTypeMap(DomainDTO.class, Domain.class);
-        domainToEntityTypeMap.addMappings(mapper -> {
-            mapper.skip(Domain::setId);
-            mapper.skip(Domain::setDateCreated);
-            mapper.skip(Domain::setDateUpdated);
-        });
     }
 
     public Page<DomainDTO.Record> getAll(Pagination pagination, DomainDTO.Filter filter) throws AuthorizationException {

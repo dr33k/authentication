@@ -29,12 +29,6 @@ public class GrantService{
     public GrantService(GrantRepository grantRepository, ModelMapper modelMapper) {
         this.grantRepository = grantRepository;
         this.modelMapper = modelMapper;
-
-        TypeMap<GrantDTO.Create, Grant> grantToEntityTypeMap = modelMapper.createTypeMap(GrantDTO.Create.class, Grant.class);
-        grantToEntityTypeMap.addMappings(mapper -> {
-            mapper.skip(Grant::setId);
-            mapper.skip(Grant::setDateCreated);
-        });
     }
 
     public Page<GrantDTO.Record> getAll(Pagination pagination, GrantDTO.Filter filter) throws AuthorizationException {
