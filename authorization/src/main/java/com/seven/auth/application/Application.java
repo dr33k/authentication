@@ -56,4 +56,12 @@ public class Application {
     public int hashCode() {
         return Objects.hashCode(id);
     }
+
+    public static Application from(ApplicationDTO.Create req){
+        var application = new Application();
+        application.setName(req.name());
+        application.setDescription(req.description());
+        application.setSchemaName(req.schemaName());
+        return application;
+    }
 }

@@ -23,22 +23,10 @@ public class ApplicationService{
 
     private final ApplicationRepository applicationRepository;
     private final TenantService tenantService;
-    private final ModelMapper modelMapper;
 
-    public ApplicationService(ApplicationRepository applicationRepository, TenantService tenantService, ModelMapper modelMapper) {
+    public ApplicationService(ApplicationRepository applicationRepository, TenantService tenantService) {
         this.applicationRepository = applicationRepository;
         this.tenantService = tenantService;
-        this.modelMapper = modelMapper;
-
-        //Purpose:
-        // When a request POJO is received, skip the id field when mapping into the entity. We should always generate an id or use the one gotten from the DB in the case of an update;
-        // Skip the request's dateCreated field
-        TypeMap<ApplicationDTO, Application> applicationToEntityTypeMap = modelMapper.createTypeMap(ApplicationDTO.class, Application.class);
-        applicationToEntityTypeMap.addMappings(mapper -> {
-            mapper.skip(Application::setId);
-            mapper.skip(Application::setDateCreated);
-            mapper.skip(Application::setDateUpdated);
-        });
     }
 
     public Page<ApplicationDTO.Record> getAll(Pagination pagination, ApplicationDTO.Filter filter) throws AuthorizationException {
@@ -52,7 +40,7 @@ public class ApplicationService{
             );
             Page<ApplicationDTO.Record> appRecords = applicationRepository
                     .findAll(ApplicationSearchSpecification.getAllAndFilter(filter), pageable)
-                    .map(applicationEntity -> modelMapper.map(applicationEntity, ApplicationDTO.Record.class));
+                    .map(ApplicationDTO.Record::from);
 
             log.info("Applications retrieved successfully");
             return appRecords;
@@ -70,7 +58,7 @@ public class ApplicationService{
                 return new NotFoundException(String.format("Application: %s not found", id));
             });
 
-            ApplicationDTO.Record record = modelMapper.map(applicationEntity, ApplicationDTO.Record.class);
+            ApplicationDTO.Record record = ApplicationDTO.Record.from(applicationEntity);
             log.info("Application retrieved successfully");
             return record;
         } catch (AuthorizationException e) {

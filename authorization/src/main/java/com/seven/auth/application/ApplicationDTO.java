@@ -41,5 +41,17 @@ public class ApplicationDTO {
             String updatedBy
     ){
         public String schemaName(){return name;}
+
+        public static Record from(Application app){
+            return new Record(
+                    app.getId(),
+                    app.getName(),
+                    app.getDescription(),
+                    app.getDateCreated(),
+                    app.getDateUpdated(),
+                    app.getCreatedBy(),
+                    app.getUpdatedBy()
+            );
+        }
     }
 }

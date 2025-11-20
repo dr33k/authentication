@@ -28,14 +28,11 @@ public class TenantService {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ApplicationRepository applicationRepository;
-    private final ModelMapper modelMapper;
     private final DataSource dataSource;
 
     public TenantService(ApplicationRepository applicationRepository,
-                         ModelMapper modelMapper,
                          DataSource dataSource) {
         this.applicationRepository = applicationRepository;
-        this.modelMapper = modelMapper;
         this.dataSource = dataSource;
     }
 
@@ -50,7 +47,7 @@ public class TenantService {
                 application = provisionSchema(appRequest);
             }
 
-            ApplicationDTO.Record appRecord = modelMapper.map(application, ApplicationDTO.Record.class);
+            ApplicationDTO.Record appRecord = ApplicationDTO.Record.from(application);
             log.info("App: {} registered successfully with id: {}", appRecord.name(), appRecord.id());
 
             return appRecord;
@@ -84,7 +81,7 @@ public class TenantService {
                 //Insert Domains and related Permissions in DB
                 SQLExecutor.insertDomains(remoteDbConnection, appRequest, log);
             }
-            Application application = modelMapper.map(appRequest, Application.class);
+            Application application = Application.from(appRequest);
             applicationRepository.saveAndFlush(application);
 
             log.info("Provisioned new schema: {}", appRequest.name());
