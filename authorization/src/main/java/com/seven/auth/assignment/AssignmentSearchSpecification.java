@@ -13,8 +13,10 @@ public class AssignmentSearchSpecification {
         return (root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if(StringUtils.isNotBlank(assignmentFilter.name()))
-                criteriaBuilder.like(root.get("name" ),"%"+ assignmentFilter.name()+"%");
+            if(StringUtils.isNotBlank(assignmentFilter.accountEmail()))
+                criteriaBuilder.like(root.get("id").get("accountEmail"),"%"+ assignmentFilter.accountEmail()+"%");
+            if(Objects.nonNull(assignmentFilter.roleId()))
+                predicates.add(criteriaBuilder.equal(root.get("id").get("roleId"), assignmentFilter.dateCreatedFrom()));
             if(Objects.nonNull(assignmentFilter.dateCreatedFrom()))
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("dateCreated"), assignmentFilter.dateCreatedFrom()));
             if(Objects.nonNull(assignmentFilter.dateCreatedTo()))

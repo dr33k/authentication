@@ -40,12 +40,6 @@ public class AssignmentController {
         return ok(assignmentRecord);
     }
 
-//    @PutMapping("/{assignmentId}")
-//    public ResponseEntity <Response> updateResource(@Valid @NotNull @PathVariable(value = "assignmentId") UUID id, @Valid @RequestBody AssignmentDTO.Update request) {
-//       AssignmentDTO.Record assignmentRecord = assignmentService.update(id, request);
-//        return ok(assignmentRecord);
-//    }
-    
     @DeleteMapping("{assignmentId}")
     public ResponseEntity <Response> deleteResource(@Valid @NotNull @PathVariable(value = "assignmentId") UUID id) throws AuthorizationException {
         assignmentService.delete(id);

@@ -1,10 +1,7 @@
 package com.seven.auth.assignment;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.springframework.validation.annotation.Validated;
 
@@ -17,33 +14,30 @@ public class AssignmentDTO {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record Create(
         @NotBlank(message = "Required field")
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
-        String name,
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Description must be at least 2 characters long")
-        String description
+        @Email(regexp = "[\\w{2,}@\\w{2,}\\.\\w{2,}", message = "Invalid email format")
+        String accountEmail,
+        @NotNull
+        UUID roleId
     ){}
 
-    @Validated
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record Update(
-        @NotBlank(message = "Required field")
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
-        String name,
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Description must be at least 2 characters long")
-        String description
-        ){}
-
     public record Filter(
-        String name,
+        String accountEmail,
+        UUID roleId,
         ZonedDateTime dateCreatedFrom,
         ZonedDateTime dateCreatedTo
     ){}
 
     public record Record(
-            UUID id,
-            String name,
-            String description,
-            ZonedDateTime dateCreated,
-            ZonedDateTime dateUpdated
-    ) { }
+            String accountEmail,
+            UUID roleId,
+            ZonedDateTime dateCreated
+    ) {
+        public static Record from(Assignment assignment){
+            return new Record(
+                    assignment.getId().getAccountEmail(),
+                    assignment.getId().getRoleId(),
+                    assignment.getDateCreated()
+            );
+        }
+    }
 }

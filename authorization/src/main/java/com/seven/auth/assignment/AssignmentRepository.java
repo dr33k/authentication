@@ -8,5 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface AssignmentRepository extends JpaRepository<Assignment, UUID>, JpaSpecificationExecutor<Assignment> {
-    Boolean existsByName(String name);
+    Boolean existsByIdAccountEmailAndIdRoleId(String accountEmail, UUID roleId);
 }

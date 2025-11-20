@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.expression.spel.ast.Assign;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -24,18 +25,9 @@ public class AssignmentService{
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final AssignmentRepository assignmentRepository;
-    private final ModelMapper modelMapper;
 
-    public AssignmentService(AssignmentRepository assignmentRepository, ModelMapper modelMapper) {
+    public AssignmentService(AssignmentRepository assignmentRepository) {
         this.assignmentRepository = assignmentRepository;
-        this.modelMapper = modelMapper;
-
-        TypeMap<AssignmentDTO.Create, Assignment> assignmentToEntityTypeMap = modelMapper.createTypeMap(AssignmentDTO.Create.class, Assignment.class);
-        assignmentToEntityTypeMap.addMappings(mapper -> {
-            mapper.skip(Assignment::setId);
-            mapper.skip(Assignment::setDateCreated);
-            mapper.skip(Assignment::setDateUpdated);
-        });
     }
 
     public Page<AssignmentDTO.Record> getAll(Pagination pagination, AssignmentDTO.Filter filter) throws AuthorizationException {
@@ -50,7 +42,7 @@ public class AssignmentService{
             );
             Page<AssignmentDTO.Record> assignmentsResponse = assignmentRepository
                     .findAll(AssignmentSearchSpecification.getAllAndFilter(filter), pageable)
-                    .map(assignmentEntity -> modelMapper.map(assignmentEntity, AssignmentDTO.Record.class));
+                    .map(AssignmentDTO.Record::from);
 
             log.info("Assignments retrieved successfully");
             return assignmentsResponse;
@@ -69,7 +61,7 @@ public class AssignmentService{
                 return new NotFoundException(String.format("Assignment: %s not found", id));
             });
 
-            AssignmentDTO.Record response = modelMapper.map(assignmentEntity, AssignmentDTO.Record.class);
+            AssignmentDTO.Record response = AssignmentDTO.Record.from(assignmentEntity);
             log.info("Assignment retrieved successfully");
             return response;
         } catch (AuthorizationException e) {
@@ -101,16 +93,17 @@ public class AssignmentService{
         log.info("Registering Assignment for Tenant: {}", tenant);
         try {
             //Validate unique name for an organisation
-            if (assignmentRepository.existsByName(request.name())) {
-                log.error("Assignment with name '{}' already exists", request.name());
-                throw new ConflictException(String.format("Assignment with name '%s' already exists", request.name()));
+            if (assignmentRepository.existsByIdAccountEmailAndIdRoleId(request.accountEmail(), request.roleId())) {
+                String message = String.format("Role %s has already been assigned to account %s", request.roleId(), request.accountEmail());
+                log.error(message);
+                throw new ConflictException(message);
             }
 
-            Assignment assignmentEntity = modelMapper.map(request, Assignment.class);
+            Assignment assignmentEntity = Assignment.from(request);
             assignmentEntity = assignmentRepository.save(assignmentEntity);
-            AssignmentDTO.Record response = modelMapper.map(assignmentEntity, AssignmentDTO.Record.class);
+            AssignmentDTO.Record response = AssignmentDTO.Record.from(assignmentEntity);
 
-            log.info("Assignment {} registered successfully with id {}", assignmentEntity.getName(), assignmentEntity.getId());
+            log.info("Assignment {} registered successfully", assignmentEntity.getId());
             return response;
         } catch (AuthorizationException e) {
             log.error("AuthorizationException registering assignment in Tenant: {}. Reason: {}", tenant, e.getMessage());
