@@ -10,9 +10,12 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -21,58 +24,52 @@ import org.springframework.web.context.annotation.ApplicationScope;
 
 @Configuration
 @EnableMethodSecurity
-public class Config {
+public class JwtAuthConfiguration {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final AccountService accountService;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public Config(JwtAuthenticationFilter jwtAuthenticationFilter, AccountService accountService, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public JwtAuthConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.accountService = accountService;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-//                .csrf().csrfTokenRepository(new HttpSessionCsrfTokenRepository())
-                .csrf().disable()
+                .csrf(AbstractHttpConfigurer::disable)
 
-                .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
-                .authorizeHttpRequests()
-                .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/swagger-ui.html/**","/swagger-ui/**","/v3/api-docs/**").permitAll()
-                .anyRequest().authenticated()
+                .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
+                        authorizationManagerRequestMatcherRegistry.requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/swagger-ui.html/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                                .anyRequest().authenticated())
 
-                .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)throws Exception{
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
+
     @Bean
-    public AuthenticationProvider authenticationProvider(){
+    public AuthenticationProvider authenticationProvider(UserDetailsService accountService) {
         DaoAuthenticationProvider dao =
                 new DaoAuthenticationProvider();
         dao.setUserDetailsService(accountService);
-        dao.setPasswordEncoder(bCryptPasswordEncoder);
+        dao.setPasswordEncoder(bCryptPasswordEncoder());
         return dao;
     }
 
     @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder(){
+    public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
 
     @Bean
     @ApplicationScope
-    public Authentication getInstance(){
+    public Authentication authentication() {
         return SecurityContextHolder.getContext().getAuthentication();
     }
 }

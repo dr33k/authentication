@@ -4,15 +4,12 @@ spring:
 
   flyway:
     enable: true
-    location: 'db/migrations/tenants/postgres'
+    location: 'db/migrations/default/postgres'
 
   datasource:
     username: postgres
     password: root
     driver-class-name: org.postgresql.Driver
-    url: 'jdbc:postgresql://localhost:5432/jwtauth_db'
+    url: 'jdbc:postgresql://localhost:5432/authentication_db'
     hikari:
       auto-commit: false
-
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQL10Dialect

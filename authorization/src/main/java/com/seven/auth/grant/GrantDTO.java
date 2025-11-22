@@ -35,5 +35,7 @@ public class GrantDTO {
             UUID roleId,
             String description,
             ZonedDateTime dateCreated
-    ) { }
+    ) {
+        public static
+    }
 }

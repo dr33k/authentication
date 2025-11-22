@@ -1,6 +1,11 @@
 package com.seven.auth.security.authentication.jwt;
 
+import com.seven.auth.account.Account;
+import com.seven.auth.account.AccountDTO;
+import com.seven.auth.account.AccountRepository;
 import com.seven.auth.account.AccountService;
+import com.seven.auth.permission.Permission;
+import com.seven.auth.permission.PermissionRepository;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,20 +15,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
-    private final AccountService accountService;
 
-    public JwtAuthenticationFilter(JwtService jwtService, AccountService accountService) {
+    public JwtAuthenticationFilter(JwtService jwtService) {
         this.jwtService = jwtService;
-        this.accountService = accountService;
     }
 
     @Override
@@ -34,16 +39,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 token = token.substring(7);
                 try {
                     Claims claims = jwtService.extractClaims(token);
-                    String username = claims.getSubject();
-                    if (username != null) {
-                        var user = accountService.loadUserByUsername(username);
+                    String email = claims.getSubject();
+
+                    if (email != null) {
                         if (jwtService.isTokenValid(claims)) {
-                            request.setAttribute("subject", username);
-                            request.setAttribute("role", claims.get("role"));
-                            request.setAttribute("privileges", claims.get("privileges"));
+                            List<Permission> permissions = (List<Permission>) claims.get("permissions");
+                            AccountDTO.Record accoountRecord = (AccountDTO.Record) claims.get("principal");
+                            request.setAttribute("subject", email);
+                            request.setAttribute("permissions", permissions);
 
                             UsernamePasswordAuthenticationToken authenticationToken =
-                                    new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                                    new UsernamePasswordAuthenticationToken(accoountRecord, null, permissions);
 
                             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                         }

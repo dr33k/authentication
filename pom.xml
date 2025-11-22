@@ -16,7 +16,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>jwt-auth-adapter</module>
-        <module>jwt-auth-core</module>
+        <module>jwt-auth</module>
         <module>authorization</module>
     </modules>
 

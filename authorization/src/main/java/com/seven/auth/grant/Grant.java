@@ -50,4 +50,8 @@ public class Grant {
     public int hashCode() {
         return Objects.hashCode(id);
     }
+
+    public static Grant from(GrantDTO.Create req){
+        return new Grant();
+    }
 }
