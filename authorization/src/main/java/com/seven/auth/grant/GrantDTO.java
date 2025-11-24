@@ -36,6 +36,14 @@ public class GrantDTO {
             String description,
             ZonedDateTime dateCreated
     ) {
-        public static
+        public static Record from(Grant g){
+            return new GrantDTO.Record(
+                    g.getId(),
+                    g.getPermission().getId(),
+                    g.getRole().getId(),
+                    g.getDescription(),
+                    g.getDateCreated()
+            );
+        }
     }
 }

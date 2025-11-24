@@ -41,6 +41,19 @@ public class Role {
     public Role() {
     }
 
+    public static Role from(RoleDTO.Create req){
+        var role = new Role();
+        role.setName(req.name());
+        role.setDescription(req.description());
+        return role;
+    }
+    public static Role from(RoleDTO.Update req){
+        var role = new Role();
+        role.setName(req.name());
+        role.setDescription(req.description());
+        return role;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

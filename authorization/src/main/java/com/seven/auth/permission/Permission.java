@@ -26,6 +26,10 @@ public class Permission implements GrantedAuthority {
     @Column
     private String description;
 
+    @Column
+    @Enumerated(EnumType.STRING)
+    private PermissionDTO.PermissionType type;
+
     @JoinColumn(name = "domain_id")
     @ManyToOne(fetch = FetchType.LAZY)
     private Domain domain;
@@ -50,6 +54,22 @@ public class Permission implements GrantedAuthority {
     @Override
     public String getAuthority() {
         return name;
+    }
+
+    public static Permission from (PermissionDTO.Create req){
+        var permission = new Permission();
+        permission.setName(req.name());
+        permission.setDescription(req.description());
+        permission.setType(req.type());
+        return permission;
+    }
+
+    public static Permission from (PermissionDTO.Update req){
+        var permission = new Permission();
+        permission.setName(req.name());
+        permission.setDescription(req.description());
+        permission.setType(req.type());
+        return permission;
     }
 
     @Override

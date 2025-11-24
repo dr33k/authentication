@@ -52,27 +52,6 @@ public class AssignmentService{
         }
     }
 
-    public AssignmentDTO.Record get(UUID id) throws AuthorizationException {
-        String tenant = TenantContext.getCurrentTenant();
-        log.info("Retrieving Assignment: {} for Tenant: {}", id, tenant);
-        try {
-            Assignment assignmentEntity = assignmentRepository.findById(id).orElseThrow(() -> {
-                log.error("Assignment: {} not found", id);
-                return new NotFoundException(String.format("Assignment: %s not found", id));
-            });
-
-            AssignmentDTO.Record response = AssignmentDTO.Record.from(assignmentEntity);
-            log.info("Assignment retrieved successfully");
-            return response;
-        } catch (AuthorizationException e) {
-            log.error("AuthorizationException retrieving assignment in Tenant: {}. Reason: {}", tenant, e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            log.error("Exception retrieving Assignment: {} for Tenant: {} in service layer. Trace:", id, tenant, e);
-            throw new ClientException(e.getMessage());
-        }
-    }
-
     public void delete(UUID id) throws AuthorizationException {
         String tenant = TenantContext.getCurrentTenant();
         log.info("Deleting Assignment: {} for Tenant: {}", id, tenant);

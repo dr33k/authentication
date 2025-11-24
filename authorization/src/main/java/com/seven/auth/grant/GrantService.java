@@ -24,11 +24,9 @@ public class GrantService{
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final GrantRepository grantRepository;
-    private final ModelMapper modelMapper;
 
-    public GrantService(GrantRepository grantRepository, ModelMapper modelMapper) {
+    public GrantService(GrantRepository grantRepository) {
         this.grantRepository = grantRepository;
-        this.modelMapper = modelMapper;
     }
 
     public Page<GrantDTO.Record> getAll(Pagination pagination, GrantDTO.Filter filter) throws AuthorizationException {
@@ -43,7 +41,7 @@ public class GrantService{
             );
             Page<GrantDTO.Record> grantsResponse = grantRepository
                     .findAll(GrantSearchSpecification.getAllAndFilter(filter), pageable)
-                    .map(grantEntity -> modelMapper.map(grantEntity, GrantDTO.Record.class));
+                    .map(GrantDTO.Record::from);
 
             log.info("Grants retrieved successfully");
             return grantsResponse;
@@ -62,7 +60,7 @@ public class GrantService{
                 return new NotFoundException(String.format("Grant: %s not found", id));
             });
 
-            GrantDTO.Record response = modelMapper.map(grantEntity, GrantDTO.Record.class);
+            GrantDTO.Record response =GrantDTO.Record.from(grantEntity);
             log.info("Grant retrieved successfully");
             return response;
         } catch (AuthorizationException e) {
@@ -100,9 +98,9 @@ public class GrantService{
                 throw new ConflictException(message);
             }
 
-            Grant grantEntity = modelMapper.map(request, Grant.class);
+            Grant grantEntity = Grant.from(request);
             grantEntity = grantRepository.save(grantEntity);
-            GrantDTO.Record response = modelMapper.map(grantEntity, GrantDTO.Record.class);
+            GrantDTO.Record response = GrantDTO.Record.from(grantEntity);
 
             log.info("Grant {} registered successfully", grantEntity.getId());
             return response;

@@ -28,6 +28,9 @@ public class Grant {
     @ManyToOne
     private Role role;
 
+    @Column
+    private String description;
+
     @CreationTimestamp
     @Column(nullable = false)
     private ZonedDateTime dateCreated;

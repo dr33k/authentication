@@ -47,5 +47,17 @@ public class RoleDTO {
             ZonedDateTime dateUpdated,
             String createdBy,
             String updatedBy
-    ) { }
+    ) {
+        public static Record from(Role r){
+            return new Record(
+                    r.getId(),
+                    r.getName(),
+                    r.getDescription(),
+                    r.getDateCreated(),
+                    r.getDateUpdated(),
+                    r.getCreatedBy(),
+                    r.getUpdatedBy()
+            );
+        }
+    }
 }

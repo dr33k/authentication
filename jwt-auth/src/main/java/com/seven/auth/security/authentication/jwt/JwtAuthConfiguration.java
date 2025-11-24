@@ -39,9 +39,9 @@ public class JwtAuthConfiguration {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
-                        authorizationManagerRequestMatcherRegistry.requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/swagger-ui.html/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                                .anyRequest().authenticated())
+//                        authorizationManagerRequestMatcherRegistry.requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
+//                                .requestMatchers(HttpMethod.GET, "/swagger", "/v3/api-docs**").permitAll()
+                                authorizationManagerRequestMatcherRegistry.anyRequest().permitAll())
 
                 .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 

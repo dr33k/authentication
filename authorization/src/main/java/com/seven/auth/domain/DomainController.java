@@ -22,7 +22,7 @@ public class DomainController {
         this.domainService = domainService;
     }
 
-    @GetMapping
+    @GetMapping("{domainId}")
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "domainId") UUID id)  throws AuthorizationException {
         DomainDTO.Record domainRecord = domainService.get(id);
         return ok(domainRecord);

@@ -22,7 +22,7 @@ public class ApplicationController {
         this.applicationService = applicationService;
     }
 
-    @GetMapping
+    @GetMapping("/{applicationId}")
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "applicationId") UUID id)  throws AuthorizationException {
         ApplicationDTO.Record record = applicationService.get(id);
         return ok(record);

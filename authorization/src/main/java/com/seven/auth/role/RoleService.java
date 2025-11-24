@@ -24,11 +24,9 @@ public class RoleService{
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final RoleRepository roleRepository;
-    private final ModelMapper modelMapper;
 
-    public RoleService(RoleRepository roleRepository, ModelMapper modelMapper) {
+    public RoleService(RoleRepository roleRepository) {
         this.roleRepository = roleRepository;
-        this.modelMapper = modelMapper;
     }
 
     public Page<RoleDTO.Record> getAll(Pagination pagination, RoleDTO.Filter filter) throws AuthorizationException {
@@ -43,7 +41,7 @@ public class RoleService{
             );
             Page<RoleDTO.Record> rolesResponse = roleRepository
                     .findAll(RoleSearchSpecification.getAllAndFilter(filter), pageable)
-                    .map(roleEntity -> modelMapper.map(roleEntity, RoleDTO.Record.class));
+                    .map(RoleDTO.Record::from);
 
             log.info("Roles retrieved successfully");
             return rolesResponse;
@@ -62,7 +60,7 @@ public class RoleService{
                 return new NotFoundException(String.format("Role: %s not found", id));
             });
 
-            RoleDTO.Record response = modelMapper.map(roleEntity, RoleDTO.Record.class);
+            RoleDTO.Record response = RoleDTO.Record.from(roleEntity);
             log.info("Role retrieved successfully");
             return response;
         } catch (AuthorizationException e) {
@@ -99,9 +97,9 @@ public class RoleService{
                 throw new ConflictException(String.format("Role with name '%s' already exists", request.name()));
             }
 
-            Role roleEntity = modelMapper.map(request, Role.class);
+            Role roleEntity = Role.from(request);
             roleEntity = roleRepository.save(roleEntity);
-            RoleDTO.Record response = modelMapper.map(roleEntity, RoleDTO.Record.class);
+            RoleDTO.Record response = RoleDTO.Record.from(roleEntity);
 
             log.info("Role {} registered successfully with id {}", roleEntity.getName(), roleEntity.getId());
             return response;

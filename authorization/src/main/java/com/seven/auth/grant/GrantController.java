@@ -22,7 +22,7 @@ public class GrantController {
         this.grantService = grantService;
     }
 
-    @GetMapping
+    @GetMapping("{grantId}")
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "grantId") UUID id)  throws AuthorizationException {
         GrantDTO.Record grantRecord = grantService.get(id);
         return ok(grantRecord);

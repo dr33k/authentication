@@ -1,6 +1,7 @@
 package com.seven.auth.permission;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.seven.auth.grant.Grant;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -53,7 +54,21 @@ public class PermissionDTO {
             ZonedDateTime dateUpdated,
             String createdBy,
             String updatedBy
-    ) { }
+    ) {
+        public static Record from(Permission p){
+            return new Record(
+                    p.getId(),
+                    p.getName(),
+                    p.getType(),
+                    p.getDescription(),
+                    p.getDomain().getId(),
+                    p.getDateCreated(),
+                    p.getDateUpdated(),
+                    p.getCreatedBy(),
+                    p.getUpdatedBy()
+            );
+        }
+    }
 
     public enum PermissionType{CREATE, READ, UPDATE, DELETE}
 }

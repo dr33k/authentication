@@ -20,7 +20,7 @@ public class AccountController {
         this.accountService = accountService;
     }
 
-    @GetMapping
+    @GetMapping("{accountId}")
     @Authorize(roles = {"ROLE_ADMIN", "ADMIN"})
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "accountId") UUID id) {
         AccountDTO.Record accountRecord = accountService.get(id);

@@ -8,8 +8,11 @@ spring:
 
   datasource:
     username: postgres
-    password: root
+    password: '###hashtag###'
     driver-class-name: org.postgresql.Driver
-    url: 'jdbc:postgresql://localhost:5432/authentication_db'
+    url: 'jdbc:postgresql://localhost:9000/auth_db'
     hikari:
       auto-commit: false
+springdoc:
+  swagger-ui:
+    path: /swagger

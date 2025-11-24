@@ -22,7 +22,7 @@ public class PermissionController {
         this.permissionService = permissionService;
     }
 
-    @GetMapping
+    @GetMapping("{permissionId}")
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "permissionId") UUID id)  throws AuthorizationException {
         PermissionDTO.Record permissionRecord = permissionService.get(id);
         return ok(permissionRecord);

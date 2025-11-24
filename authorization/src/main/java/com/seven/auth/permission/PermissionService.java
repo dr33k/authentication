@@ -24,11 +24,9 @@ public class PermissionService{
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final PermissionRepository permissionRepository;
-    private final ModelMapper modelMapper;
 
-    public PermissionService(PermissionRepository permissionRepository, ModelMapper modelMapper) {
+    public PermissionService(PermissionRepository permissionRepository) {
         this.permissionRepository = permissionRepository;
-        this.modelMapper = modelMapper;
     }
 
     public Page<PermissionDTO.Record> getAll(Pagination pagination, PermissionDTO.Filter filter) throws AuthorizationException {
@@ -43,7 +41,7 @@ public class PermissionService{
             );
             Page<PermissionDTO.Record> permissionsResponse = permissionRepository
                     .findAll(PermissionSearchSpecification.getAllAndFilter(filter), pageable)
-                    .map(permissionEntity -> modelMapper.map(permissionEntity, PermissionDTO.Record.class));
+                    .map(PermissionDTO.Record::from);
 
             log.info("Permissions retrieved successfully");
             return permissionsResponse;
@@ -62,7 +60,7 @@ public class PermissionService{
                 return new NotFoundException(String.format("Permission: %s not found", id));
             });
 
-            PermissionDTO.Record response = modelMapper.map(permissionEntity, PermissionDTO.Record.class);
+            PermissionDTO.Record response = PermissionDTO.Record.from(permissionEntity);
             log.info("Permission retrieved successfully");
             return response;
         } catch (AuthorizationException e) {
@@ -99,9 +97,9 @@ public class PermissionService{
                 throw new ConflictException(String.format("Permission with name '%s' already exists", request.name()));
             }
 
-            Permission permissionEntity = modelMapper.map(request, Permission.class);
+            Permission permissionEntity = Permission.from(request);
             permissionEntity = permissionRepository.save(permissionEntity);
-            PermissionDTO.Record response = modelMapper.map(permissionEntity, PermissionDTO.Record.class);
+            PermissionDTO.Record response = PermissionDTO.Record.from(permissionEntity);
 
             log.info("Permission {} registered successfully with id {}", permissionEntity.getName(), permissionEntity.getId());
             return response;

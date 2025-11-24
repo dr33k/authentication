@@ -23,12 +23,6 @@ public class AssignmentController {
     }
 
     @GetMapping
-    public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "assignmentId") UUID id)  throws AuthorizationException {
-        AssignmentDTO.Record assignmentRecord = assignmentService.get(id);
-        return ok(assignmentRecord);
-    }
-
-    @GetMapping
     public ResponseEntity <Response> getResources(Pagination pagination, AssignmentDTO.Filter assignmentFilter)  throws AuthorizationException {
         Page<AssignmentDTO.Record> assignmentRecords = assignmentService.getAll(pagination, assignmentFilter);
         return ok(assignmentRecords);
