@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -40,12 +41,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     if (email != null) {
                         if (jwtService.isTokenValid(claims)) {
                             List<Permission> permissions = (List<Permission>) claims.get("permissions");
-                            AccountDTO.Record accoountRecord = (AccountDTO.Record) claims.get("principal");
+                            Map<String, Object> accountRecord = (Map<String, Object>) claims.get("principal");
                             request.setAttribute("subject", email);
                             request.setAttribute("permissions", permissions);
 
                             UsernamePasswordAuthenticationToken authenticationToken =
-                                    new UsernamePasswordAuthenticationToken(accoountRecord, null, permissions);
+                                    new UsernamePasswordAuthenticationToken(accountRecord, null, permissions);
 
                             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                         }

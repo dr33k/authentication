@@ -1,5 +1,7 @@
 package com.seven.auth.account;
 
+import com.seven.auth.application.ApplicationDTO;
+import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.util.response.Response;
 import com.seven.auth.annotation.Authorize;
 import jakarta.validation.Valid;
@@ -32,6 +34,13 @@ public class AccountController {
         AccountDTO.Record accountRecord = accountService.update(id, request);
         return ok(accountRecord);
     }
+
+    @PostMapping
+    public ResponseEntity <Response> createResource(@Valid @RequestBody AccountDTO.Create create){
+        AccountDTO.Record record = accountService.create(create);
+        return ok(record);
+    }
+
     @DeleteMapping("{accountId}")
     public ResponseEntity <Response> deleteResource(@Valid @NotNull @PathVariable(value = "accountId") UUID id) {
         accountService.delete(id);

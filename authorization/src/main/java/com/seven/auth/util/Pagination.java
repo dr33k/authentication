@@ -1,8 +1,10 @@
 package com.seven.auth.util;
 
 import lombok.Data;
+import org.springframework.validation.annotation.Validated;
 
 @Data
+@Validated
 public class Pagination {
     private int limit;
     private int offset;

@@ -2,14 +2,13 @@ package com.seven.auth.account;
 
 import com.seven.auth.util.Pagination;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,7 +20,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-public class AccountService implements UserDetailsService {
+public class AccountService implements UserDetailsService, UserDetailsPasswordService {
     private final AccountRepository accountRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -72,8 +71,7 @@ public class AccountService implements UserDetailsService {
             if (accountRepository.existsByEmail(accountCreateRequest.email()))
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "An account with this email already exists");
 
-            Account account = new Account();
-            BeanUtils.copyProperties(accountCreateRequest, account);
+            Account account = Account.from(accountCreateRequest);
 
             //Encode password
             account.setPassword(bCryptPasswordEncoder.encode(accountCreateRequest.password()));
@@ -114,7 +112,7 @@ public class AccountService implements UserDetailsService {
             Account account = accountRepository.findById(id)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account account could not be found"));
 
-            BeanUtils.copyProperties(accountUpdateRequest, account);
+            Account.update(account, accountUpdateRequest);
             accountRepository.save(account);
             AccountDTO.Record record = AccountDTO.Record.from(account);
 
@@ -132,5 +130,13 @@ public class AccountService implements UserDetailsService {
 
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return accountRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
+    }
+
+    @Override
+    public UserDetails updatePassword(UserDetails userDetails, String newPassword) {
+        Account account = (Account) userDetails;
+        account.setPassword(bCryptPasswordEncoder.encode(newPassword));
+        account = accountRepository.save(account);
+        return account;
     }
 }

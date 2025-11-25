@@ -23,7 +23,7 @@ public class PermissionDTO {
         @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
         String name,
         @NotNull(message = "Required field")
-        PermissionType type,
+        Permission.PermissionType type,
         @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Description must be at least 2 characters long")
         String description
     ){}
@@ -38,7 +38,7 @@ public class PermissionDTO {
             @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Description must be at least 2 characters long")
             String description,
             @NotNull(message = "Required field")
-            PermissionType type
+            Permission.PermissionType type
     ){}
 
     @Schema(name = "PermissionFilterRequest")
@@ -52,7 +52,7 @@ public class PermissionDTO {
     public record Record(
             UUID id,
             String name,
-            PermissionType type,
+            Permission.PermissionType type,
             String description,
             UUID domainId,
             ZonedDateTime dateCreated,
@@ -74,6 +74,4 @@ public class PermissionDTO {
             );
         }
     }
-
-    public enum PermissionType{CREATE, READ, UPDATE, DELETE}
 }

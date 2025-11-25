@@ -1,5 +1,6 @@
 package com.seven.auth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seven.auth.account.Account;
 import com.seven.auth.account.AccountDTO;
 import com.seven.auth.account.AccountService;
@@ -10,6 +11,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.jackson.io.JacksonSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -23,10 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.ZonedDateTime;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service("jwtService")
 @ApplicationScope
@@ -36,12 +35,14 @@ public class JwtService {
     final private AccountService accountService;
     final private PermissionRepository permissionRepository;
     private final AuthenticationProvider authenticationProvider;
+    private final ObjectMapper objectMapper;
 
-    public JwtService(Environment environment, AccountService accountService, PermissionRepository permissionRepository, AuthenticationProvider authenticationProvider) {
+    public JwtService(Environment environment, AccountService accountService, PermissionRepository permissionRepository, AuthenticationProvider authenticationProvider, ObjectMapper objectMapper) {
         this.environment = environment;
         this.accountService = accountService;
         this.permissionRepository = permissionRepository;
         this.authenticationProvider = authenticationProvider;
+        this.objectMapper = objectMapper;
     }
 
     public Claims extractClaims(String token) {
@@ -53,7 +54,7 @@ public class JwtService {
     }
 
     private Key getSigningKey() {
-        byte[] bytes = environment.getProperty("jwt.signing.key").getBytes(StandardCharsets.UTF_8);
+        byte[] bytes = Objects.requireNonNull(environment.getProperty("jwt.signing-key")).getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(bytes);
     }
 
@@ -61,6 +62,7 @@ public class JwtService {
         ZonedDateTime now = ZonedDateTime.now();
         return Jwts
                 .builder()
+                .serializeToJsonWith(new JacksonSerializer <>(objectMapper))
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(Date.from(now.toInstant()))

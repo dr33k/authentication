@@ -4,6 +4,7 @@ import com.seven.auth.config.threadlocal.TenantContext;
 import com.seven.auth.domain.DomainDTO;
 import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.exception.ClientException;
+import com.seven.auth.exception.ConflictException;
 import com.seven.auth.util.Constants;
 import com.seven.auth.util.SQLExecutor;
 import org.flywaydb.core.Flyway;
@@ -37,11 +38,11 @@ public class TenantService {
 
     public ApplicationDTO.Record register(ApplicationDTO.Create appRequest) throws AuthorizationException {
         try {
-            String appName = appRequest.name();
-            log.info("Registering new app: {}", appName);
+            String schemaName = appRequest.schemaName();
+            log.info("Registering new app: {}", appRequest.name());
 
             //Check if app by this name already exists
-            Application application = applicationRepository.findByName(appName).orElse(null);
+            Application application = applicationRepository.findBySchemaName(schemaName).orElse(null);
             if (application == null) {
                 application = provisionSchema(appRequest);
             }
@@ -55,15 +56,13 @@ public class TenantService {
             throw e;
         } catch (Exception e) {
             log.error("Error registering app {}; Trace:", appRequest.name(), e);
-            throw new ClientException(e.getMessage());
+            throw new ConflictException(e.getMessage());
         }
     }
 
     private Application provisionSchema(ApplicationDTO.Create appRequest) throws AuthorizationException {
         try {
             log.info("Provisioning new schema for app: {}", appRequest.name());
-
-            List<DomainDTO.Create> domains = appRequest.domains();
 
             //Create flyway instance for schema-to-be-created
             Flyway tenantFlyway = buildTenantFlyway(dataSource, appRequest);
@@ -87,7 +86,7 @@ public class TenantService {
             return application;
         } catch (Exception e) {
             log.error("Error trying to provision schema. Trace:", e);
-            throw new ClientException(String.format("Error provisioning schema. Message: %s", e.getMessage()));
+            throw new ConflictException(String.format("Error provisioning schema. Message: %s", e.getMessage()));
         }
     }
 
@@ -125,6 +124,7 @@ public class TenantService {
         flywayConfig.setDataSource(dataSource);
         flywayConfig.setSchemas(new String[]{schemaName});
         flywayConfig.setLocations(new Location(String.format(Constants.TENANT_MIGRATION_SCRIPTTS_PATH, dbVendor)));
+        flywayConfig.setCleanDisabled(false);
         log.info("Instantiated flyway for Schema: {} in DB", schemaName);
         return new Flyway(flywayConfig);
     }

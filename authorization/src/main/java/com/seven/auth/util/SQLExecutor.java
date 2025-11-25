@@ -30,9 +30,9 @@ public class SQLExecutor {
             try (PreparedStatement domainPS = dataSourceConnection.prepareStatement(String.format("SELECT \"%s\".insert_domain(?,?,?,?)", appRequest.schemaName()));
                  PreparedStatement permissionPS = dataSourceConnection.prepareStatement(String.format("SELECT \"%s\".insert_permission(?,?,?,?,?,?)", appRequest.schemaName()))) {
                 for (DomainDTO.Create domain : domains) {
-                    String domainId = UUID.randomUUID().toString();
+                    UUID domainId = UUID.randomUUID();
                     domainPS.setString(1, appRequest.schemaName());
-                    domainPS.setString(2, domainId);
+                    domainPS.setObject(2, domainId);
                     domainPS.setString(3, domain.name());
                     domainPS.setString(4, domain.description());
 
@@ -40,10 +40,10 @@ public class SQLExecutor {
 
                     for (PermissionDTO.Create permission : domain.permissions()) {
                         permissionPS.setString(1, appRequest.schemaName());
-                        permissionPS.setString(2, UUID.randomUUID().toString());
+                        permissionPS.setObject(2, UUID.randomUUID());
                         permissionPS.setString(3, permission.name());
                         permissionPS.setString(4, permission.type().name());
-                        permissionPS.setString(5, domainId);
+                        permissionPS.setObject(5, domainId);
                         permissionPS.setString(6, permission.description());
 
                         permissionPS.addBatch();

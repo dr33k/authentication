@@ -28,7 +28,7 @@ public class Permission implements GrantedAuthority {
 
     @Column
     @Enumerated(EnumType.STRING)
-    private PermissionDTO.PermissionType type;
+    private PermissionType type;
 
     @JoinColumn(name = "domain_id")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -50,6 +50,7 @@ public class Permission implements GrantedAuthority {
 
     public Permission() {
     }
+    public enum PermissionType{CREATE, READ, UPDATE, DELETE}
 
     @Override
     public String getAuthority() {

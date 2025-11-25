@@ -28,6 +28,7 @@ public class ApplicationDTO {
     }
 
     @Schema(name = "AppFilterRequest")
+    @Validated
     public record Filter(
         String name,
         ZonedDateTime dateCreatedFrom,

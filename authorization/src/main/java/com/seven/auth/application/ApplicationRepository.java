@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface ApplicationRepository extends JpaRepository<Application, UUID>, JpaSpecificationExecutor<Application> {
-    Optional<Application> findByName(String appName);
+    Optional<Application> findBySchemaName(String appName);
 }

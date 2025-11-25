@@ -29,7 +29,7 @@ public class ApplicationController {
     }
 
     @GetMapping
-    public ResponseEntity <Response> getResources(Pagination pagination, ApplicationDTO.Filter applicationFilter)  throws AuthorizationException {
+    public ResponseEntity <Response> getResources(@Valid @RequestParam(required = false) Pagination pagination,@Valid @RequestParam ApplicationDTO.Filter applicationFilter)  throws AuthorizationException {
         Page<ApplicationDTO.Record> applicationDTOs = applicationService.getAll(pagination, applicationFilter);
         return ok(applicationDTOs);
     }

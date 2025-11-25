@@ -1,5 +1,6 @@
 package com.seven.auth.config;
 
+import com.seven.auth.account.AccountService;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.context.annotation.ApplicationScope;
+
+import java.security.SecureRandom;
 
 
 @Configuration
@@ -48,34 +51,21 @@ public class JwtAuthConfiguration {
 
 
     @Bean
-    public AuthenticationProvider authenticationProvider(UserDetailsService accountService) {
+    public AuthenticationProvider authenticationProvider(AccountService accountService) {
         DaoAuthenticationProvider dao = new DaoAuthenticationProvider(accountService);
+        dao.setUserDetailsPasswordService(accountService);
         dao.setPasswordEncoder(bCryptPasswordEncoder());
         return dao;
     }
 
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
-        return new BCryptPasswordEncoder(10);
+        return new BCryptPasswordEncoder(12);
     }
 
     @Bean
     @ApplicationScope
     public Authentication authentication() {
         return SecurityContextHolder.getContext().getAuthentication();
-    }
-
-
-    private SecurityScheme createSecurityScheme() {
-        return new SecurityScheme()
-                // The type of security: HTTP authentication
-                .type(SecurityScheme.Type.HTTP)
-                // The scheme name used in the HTTP header: "Bearer"
-                .scheme("bearer")
-                // The specific format of the bearer token: JWT
-                .bearerFormat("JWT")
-                // A descriptive text shown in the Swagger UI
-                .in(SecurityScheme.In.HEADER)
-                .description("JWT token required for access.");
     }
 }

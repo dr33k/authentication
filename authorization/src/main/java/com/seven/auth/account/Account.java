@@ -44,6 +44,10 @@ public class Account implements Serializable, UserDetails {
     private String password;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AccountStatus status = AccountStatus.INACTIVE;
+
+    @Column(nullable = false)
     private LocalDate dob;
 
     @CreationTimestamp
@@ -59,6 +63,7 @@ public class Account implements Serializable, UserDetails {
 
     @Column
     private String updatedBy = "SYSTEM";
+    public enum AccountStatus{ACTIVE, INACTIVE}
 
     public Account() {
     }
@@ -125,13 +130,10 @@ public class Account implements Serializable, UserDetails {
         return account;
     }
 
-    public static Account from(AccountDTO.Update req){
-        Account account = new Account();
+    public static void update(Account account, AccountDTO.Update req){
         account.setFirstName(req.firstName());
         account.setLastName(req.lastName());
         account.setDob(req.dob());
         account.setPhoneNo(req.phoneNo());
-        account.setPassword(req.password());
-        return account;
     }
 }
