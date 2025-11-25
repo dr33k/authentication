@@ -1,4 +1,4 @@
-package com.seven.auth.security.authentication.jwt;
+package com.seven.auth;
 
 import com.seven.auth.account.Account;
 import com.seven.auth.account.AccountDTO;

@@ -1,11 +1,8 @@
-package com.seven.auth.security.authentication.jwt;
+package com.seven.auth.config;
 
-import com.seven.auth.account.Account;
+import com.seven.auth.JwtService;
 import com.seven.auth.account.AccountDTO;
-import com.seven.auth.account.AccountRepository;
-import com.seven.auth.account.AccountService;
 import com.seven.auth.permission.Permission;
-import com.seven.auth.permission.PermissionRepository;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.server.ResponseStatusException;

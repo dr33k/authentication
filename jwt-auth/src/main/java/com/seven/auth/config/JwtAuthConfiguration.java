@@ -1,5 +1,6 @@
-package com.seven.auth.security.authentication.jwt;
+package com.seven.auth.config;
 
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -62,5 +63,19 @@ public class JwtAuthConfiguration {
     @ApplicationScope
     public Authentication authentication() {
         return SecurityContextHolder.getContext().getAuthentication();
+    }
+
+
+    private SecurityScheme createSecurityScheme() {
+        return new SecurityScheme()
+                // The type of security: HTTP authentication
+                .type(SecurityScheme.Type.HTTP)
+                // The scheme name used in the HTTP header: "Bearer"
+                .scheme("bearer")
+                // The specific format of the bearer token: JWT
+                .bearerFormat("JWT")
+                // A descriptive text shown in the Swagger UI
+                .in(SecurityScheme.In.HEADER)
+                .description("JWT token required for access.");
     }
 }

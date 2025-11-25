@@ -1,4 +1,4 @@
-package com.seven.auth.security.authentication.jwt;
+package com.seven.auth;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotBlank;

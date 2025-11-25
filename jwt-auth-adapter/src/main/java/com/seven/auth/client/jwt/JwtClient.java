@@ -1,7 +1,7 @@
 package com.seven.auth.client.jwt;
 
 import com.seven.auth.account.AccountDTO;
-import com.seven.auth.security.authentication.jwt.JwtLoginRequest;
+import com.seven.auth.JwtLoginRequest;
 import com.seven.auth.util.response.Response;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;

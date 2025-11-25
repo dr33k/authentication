@@ -1,7 +1,8 @@
-package com.seven.auth.security.authentication.jwt;
+package com.seven.auth;
 
 import com.seven.auth.util.response.Response;
 import com.seven.auth.account.*;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +15,7 @@ import static com.seven.auth.util.response.Responder.ok;
 
 @RestController
 @RequestMapping("auth/jwt")
+@SecurityRequirements
 public class JwtAuthController {
     JwtService jwtService;
 
