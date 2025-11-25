@@ -2,6 +2,7 @@ package com.seven.auth.permission;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.seven.auth.grant.Grant;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -16,6 +17,7 @@ public class PermissionDTO {
 
     @Validated
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(name = "PermissionCreateRequest")
     public record Create(
         @NotBlank(message = "Required field")
         @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
@@ -28,6 +30,7 @@ public class PermissionDTO {
 
     @Validated
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(name = "PermissionUpdateRequest")
     public record Update(
             @NotBlank(message = "Required field")
             @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
@@ -38,12 +41,14 @@ public class PermissionDTO {
             PermissionType type
     ){}
 
+    @Schema(name = "PermissionFilterRequest")
     public record Filter(
         String name,
         ZonedDateTime dateCreatedFrom,
         ZonedDateTime dateCreatedTo
     ){}
 
+    @Schema(name = "PermissionResponse")
     public record Record(
             UUID id,
             String name,

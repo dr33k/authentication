@@ -2,7 +2,6 @@ package com.seven.auth.account;
 
 import com.seven.auth.util.Pagination;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

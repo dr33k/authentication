@@ -6,8 +6,6 @@ import com.seven.auth.exception.ClientException;
 import com.seven.auth.exception.ConflictException;
 import com.seven.auth.exception.NotFoundException;
 import com.seven.auth.util.Pagination;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;

@@ -2,6 +2,7 @@ package com.seven.auth.domain;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.seven.auth.permission.PermissionDTO;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -17,6 +18,7 @@ public class DomainDTO {
 
     @Validated
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(name = "DomainCreateRequest")
     public record Create(
         @NotBlank(message = "Required field")
         @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
@@ -29,6 +31,7 @@ public class DomainDTO {
 
     @Validated
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(name = "DomainUpdateRequest")
     public record Update(
         @NotBlank(message = "Required field")
         @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
@@ -37,12 +40,14 @@ public class DomainDTO {
         String description
         ){}
 
+    @Schema(name = "DomainFilterRequest")
     public record Filter(
         String name,
         ZonedDateTime dateCreatedFrom,
         ZonedDateTime dateCreatedTo
     ){}
 
+    @Schema(name = "DomainResponse")
     public record Record(
             UUID id,
             String name,

@@ -1,6 +1,7 @@
 package com.seven.auth.grant;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -15,13 +16,14 @@ public class GrantDTO {
 
     @Validated
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(name = "GrantCreateRequest")
     public record Create(
         @NotNull
         UUID permissionId,
         @NotNull
         UUID roleId
     ){}
-
+    @Schema(name = "GrantFilterRequest")
     public record Filter(
             UUID permissionId,
             UUID roleId,
@@ -29,6 +31,7 @@ public class GrantDTO {
             ZonedDateTime dateCreatedTo
     ){}
 
+    @Schema(name = "GrantResponse")
     public record Record(
             UUID id,
             UUID permissionId,

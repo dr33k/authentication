@@ -3,14 +3,14 @@ spring:
     name: 'jwtauth'
 
   flyway:
-    enable: true
-    location: 'db/migrations/default/postgres'
+    enabled: true
+    locations: classpath:db/migrations/default/postgres
 
   datasource:
-    username: postgres
-    password: '###hashtag###'
+    username: ${PG_USER}
+    password: ${PG_PASSWORD}
     driver-class-name: org.postgresql.Driver
-    url: 'jdbc:postgresql://localhost:9000/auth_db'
+    url: jdbc:postgresql://localhost:${PG_PORT}/auth_db
     hikari:
       auto-commit: false
 springdoc:

@@ -1,6 +1,7 @@
 package com.seven.auth.role;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -15,6 +16,7 @@ public class RoleDTO {
 
     @Validated
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(name = "RoleCreateRequest")
     public record Create(
         @NotBlank(message = "Required field")
         @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
@@ -25,6 +27,7 @@ public class RoleDTO {
 
     @Validated
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(name = "RoleUpdateRequest")
     public record Update(
         @NotBlank(message = "Required field")
         @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
@@ -33,12 +36,14 @@ public class RoleDTO {
         String description
         ){}
 
+    @Schema(name = "RoleFilterRequest")
     public record Filter(
         String name,
         ZonedDateTime dateCreatedFrom,
         ZonedDateTime dateCreatedTo
     ){}
 
+    @Schema(name = "RoleResponse")
     public record Record(
             UUID id,
             String name,

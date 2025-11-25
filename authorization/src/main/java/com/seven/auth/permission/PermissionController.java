@@ -3,6 +3,7 @@ package com.seven.auth.permission;
 import com.seven.auth.util.Pagination;
 import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.util.response.Response;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;

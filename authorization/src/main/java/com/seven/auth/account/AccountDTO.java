@@ -2,6 +2,7 @@ package com.seven.auth.account;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
@@ -15,6 +16,7 @@ public class AccountDTO {
 
     @Validated
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(name = "AccountCreateRequest")
     public record Create(
         @NotBlank(message = "Required field")
         @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
@@ -36,6 +38,7 @@ public class AccountDTO {
 
     @Validated
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(name = "AccountUpdateRequest")
     public record Update(
         @Pattern(regexp = "^[A-Za-z'\\-]{2,30}",message = "Name must be at least 2 characters long")
         String firstName,
@@ -53,6 +56,7 @@ public class AccountDTO {
     ){}
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(name = "AccountFilterRequest")
     public record Filter(
         String name,
         String phoneNo,
@@ -63,6 +67,7 @@ public class AccountDTO {
     ){}
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(name = "AccountResponse")
     public record Record(
             String firstName,
             String lastName,
