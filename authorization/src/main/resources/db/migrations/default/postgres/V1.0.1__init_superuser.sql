@@ -1,3 +1,5 @@
+SET SCHEMA 'authorization';
+
 CREATE TABLE auth_account (
         id UUID PRIMARY KEY,
         first_name VARCHAR(255) NOT NULL,
@@ -115,13 +117,13 @@ VALUES
 (super_delete_id, 'super_delete', 'This represents the DELETE permission that overrides all others', 'DELETE', authorization_domain_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id)
 ;
 
-INSERT INTO auth_grant(id, role_id, permission_id, description, date_created, date_updated, created_by, updated_by)
+INSERT INTO auth_grant(id, role_id, permission_id, description, date_created, created_by)
 VALUES
-(gen_random_uuid(), root_role_id, super_create_id, 'Grants the super_create role to the superuser', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
-(gen_random_uuid(), root_role_id, super_update_id, 'Grants the super_update role to the superuser', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
-(gen_random_uuid(), root_role_id, super_read_id, 'Grants the super_read role to the superuser', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
-(gen_random_uuid(), root_role_id, super_delete_id, 'Grants the super_delete role to the superuser', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
-
+(gen_random_uuid(), root_role_id, super_create_id, 'Grants the super_create role to the superuser', CURRENT_TIMESTAMP, system_id),
+(gen_random_uuid(), root_role_id, super_update_id, 'Grants the super_update role to the superuser', CURRENT_TIMESTAMP, system_id),
+(gen_random_uuid(), root_role_id, super_read_id, 'Grants the super_read role to the superuser', CURRENT_TIMESTAMP, system_id),
+(gen_random_uuid(), root_role_id, super_delete_id, 'Grants the super_delete role to the superuser', CURRENT_TIMESTAMP, system_id)
+;
 --Create permissions for the Authorization domain
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 INSERT INTO auth_permission(id, name, description, type, domain_id, date_created, date_updated, created_by, updated_by)
@@ -154,7 +156,7 @@ VALUES
 (gen_random_uuid(), 'create_grant', 'Grants holder permission to create grants', 'CREATE', authorization_domain_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
 (gen_random_uuid(), 'update_grant', 'Grants holder permission to update grants', 'UPDATE', authorization_domain_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
 (gen_random_uuid(), 'read_grant', 'Grants holder permission to read grants', 'READ', authorization_domain_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
-(gen_random_uuid(), 'delete_grant', 'Grants holder permission to delete grants', 'DELETE', authorization_domain_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
+(gen_random_uuid(), 'delete_grant', 'Grants holder permission to delete grants', 'DELETE', authorization_domain_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id)
 ;
 END
 $$;

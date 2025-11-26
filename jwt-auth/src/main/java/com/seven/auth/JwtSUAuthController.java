@@ -1,7 +1,8 @@
 package com.seven.auth;
 
+import com.seven.auth.account.AccountDTO;
+import com.seven.auth.account.AuthDTO;
 import com.seven.auth.util.response.Response;
-import com.seven.auth.account.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -14,19 +15,13 @@ import static com.seven.auth.util.response.Responder.created;
 import static com.seven.auth.util.response.Responder.ok;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("su/auth")
 @SecurityRequirements
-public class JwtAuthController {
+public class JwtSUAuthController {
     JwtService jwtService;
 
-    public JwtAuthController(JwtService jwtService) {
+    public JwtSUAuthController(JwtService jwtService) {
         this.jwtService = jwtService;
-    }
-
-    @PostMapping(value = "/register", produces = "application/json", consumes = "application/json")
-    public ResponseEntity<Response> createResource(@Valid @RequestBody AccountDTO.Create request) {
-            AuthDTO userDTO = jwtService.register(request);
-            return created(userDTO.data, userDTO.token);
     }
 
     @PostMapping(value = "/login", produces = "application/json", consumes = "application/json")

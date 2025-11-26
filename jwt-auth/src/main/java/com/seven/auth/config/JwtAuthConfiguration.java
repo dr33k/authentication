@@ -38,7 +38,7 @@ public class JwtAuthConfiguration {
 
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry
-                                .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/auth/**", "/su/**").permitAll()
                                 .requestMatchers("/swagger", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                                 .anyRequest().authenticated()
                 )

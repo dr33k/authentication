@@ -1,4 +1,4 @@
-CREATE SCHEMA IF NOT EXISTS authorization;
+CREATE SCHEMA IF NOT EXISTS "authorization";
 SET SCHEMA 'authorization';
 
 CREATE TABLE auth_application (
@@ -14,4 +14,4 @@ CREATE TABLE auth_application (
 );
 
 INSERT INTO auth_application(id, name, description, schema_name, date_created, date_updated, created_by, updated_by)
-VALUES(gen_random_uuid(), 'authorization', 'Default authorization application', 'authorization', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'SYSTEM', 'SYSTEM');
+VALUES (gen_random_uuid(), 'authorization', 'Default authorization application', 'authorization', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'SYSTEM', 'SYSTEM');
