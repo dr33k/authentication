@@ -1,4 +1,5 @@
 package com.seven.auth.domain;
+import com.seven.auth.permission.Permission;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
@@ -6,8 +7,10 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "auth_domain")
@@ -23,6 +26,9 @@ public class Domain {
 
     @Column
     private String description;
+
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    private List<Permission> permissions;
 
     @CreationTimestamp
     @Column(nullable = false)
@@ -58,6 +64,9 @@ public class Domain {
         var d = new Domain();
         d.setName(req.name());
         d.setDescription(req.description());
+        d.setPermissions(
+                req.permissions().stream().map(Permission::from).collect(Collectors.toList())
+        );
         return d;
     }
     public static Domain from(DomainDTO.Update req){

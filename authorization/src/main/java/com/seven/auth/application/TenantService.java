@@ -1,9 +1,12 @@
 package com.seven.auth.application;
 
+import com.seven.auth.account.Account;
+import com.seven.auth.account.AccountRepository;
+import com.seven.auth.config.schema.SchemaTenantIdentifierResolver;
 import com.seven.auth.config.threadlocal.TenantContext;
-import com.seven.auth.domain.DomainDTO;
+import com.seven.auth.domain.Domain;
+import com.seven.auth.domain.DomainRepository;
 import com.seven.auth.exception.AuthorizationException;
-import com.seven.auth.exception.ClientException;
 import com.seven.auth.exception.ConflictException;
 import com.seven.auth.util.Constants;
 import com.seven.auth.util.SQLExecutor;
@@ -12,12 +15,21 @@ import org.flywaydb.core.api.Location;
 import org.flywaydb.core.api.configuration.ClassicConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * The TenantService performs the singular task of registering an app and
@@ -28,11 +40,19 @@ public class TenantService {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ApplicationRepository applicationRepository;
+    private final AccountRepository accountRepository;
+    private final DomainRepository domainRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final SchemaTenantIdentifierResolver tenantIdentifierResolver;
     private final DataSource dataSource;
 
-    public TenantService(ApplicationRepository applicationRepository,
+    public TenantService(ApplicationRepository applicationRepository, AccountRepository accountRepository, DomainRepository domainRepository, BCryptPasswordEncoder bCryptPasswordEncoder, SchemaTenantIdentifierResolver tenantIdentifierResolver,
                          DataSource dataSource) {
         this.applicationRepository = applicationRepository;
+        this.accountRepository = accountRepository;
+        this.domainRepository = domainRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.tenantIdentifierResolver = tenantIdentifierResolver;
         this.dataSource = dataSource;
     }
 
@@ -74,13 +94,24 @@ public class TenantService {
             tenantFlyway.migrate();
             log.info("Schema: {} created successfully in DB", appRequest.schemaName());
 
-            //Open a connection to the DB and begin the population process
-            try (Connection remoteDbConnection = dataSource.getConnection()) {
-                //Insert Domains and related Permissions in DB
-                SQLExecutor.insertDomains(remoteDbConnection, appRequest, log);
-            }
+            //Switch to newly created schema
+            tenantIdentifierResolver.setTenantIdentifier(appRequest.schemaName());
+
+            //Set Admin email and password
+            setAdminCredentials(appRequest);
+
+            //insert domains and permissions
+            insertDomainsAndPermissions(appRequest);
+
+            //Switch to authorization schema
+            tenantIdentifierResolver.setTenantIdentifier(Constants.AUTHORIZATION_SCHEMA_NAME);
+
+            //Insert application record
             Application application = Application.from(appRequest);
-            applicationRepository.saveAndFlush(application);
+            applicationRepository.save(application);
+
+            //Switch to public schema
+            tenantIdentifierResolver.setTenantIdentifier("public");
 
             log.info("Provisioned new schema: {}", appRequest.name());
             return application;
@@ -88,6 +119,33 @@ public class TenantService {
             log.error("Error trying to provision schema. Trace:", e);
             throw new ConflictException(String.format("Error provisioning schema. Message: %s", e.getMessage()));
         }
+    }
+
+    private void insertDomainsAndPermissions(ApplicationDTO.Create appRequest) {
+        log.info("Inserting Domains and related permissions");
+        List<Domain> domains = appRequest.domains().stream().map(Domain::from).toList();
+        domainRepository.saveAll(domains);
+        log.info("Domains and related permissions inserted successfully");
+    }
+
+    private void setAdminCredentials(ApplicationDTO.Create appRequest) throws ConflictException, IOException {
+        log.info("Setting Admin credentials");
+        String adminUsername = appRequest.schemaName() + "@seven.com";
+        String adminPassword = UUID.randomUUID().toString();
+        Account admin = accountRepository.findByEmail(adminUsername).orElseThrow(()-> new ConflictException("Elevated user not found please contact administrator"));
+        admin.setPassword(bCryptPasswordEncoder.encode(adminPassword));
+        accountRepository.save(admin);
+
+        //Create credentials file
+        Path userHomeDir = Paths.get(System.getProperty("user.home"));
+        Path credentialsFilePath = userHomeDir.resolve(appRequest.schemaName()+"_credentials.txt");
+        Files.deleteIfExists(credentialsFilePath);
+        File credentialsFile = Files.createFile(credentialsFilePath).toFile();
+
+        try(FileOutputStream fos = new FileOutputStream(credentialsFile)){
+            fos.write("Username:%s\nPassword:%s".formatted(adminUsername, adminPassword).getBytes(StandardCharsets.UTF_8));
+        }
+        log.info("Credentials file: {}", credentialsFilePath.toAbsolutePath());
     }
 
     /**

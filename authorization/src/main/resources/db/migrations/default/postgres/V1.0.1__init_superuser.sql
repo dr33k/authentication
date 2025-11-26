@@ -29,7 +29,7 @@ CREATE TABLE auth_role(
 
 CREATE TABLE auth_domain(
     id UUID PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(100) UNIQUE NOT NULL,
     description VARCHAR(255),
     date_created TIMESTAMP NOT NULL,
     date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -40,7 +40,7 @@ CREATE INDEX auth_domain_name_idx ON auth_domain(name);
 
 CREATE TABLE auth_permission(
     id UUID PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(100) UNIQUE NOT NULL,
     description VARCHAR(255),
     type VARCHAR(20) NOT NULL,
     domain_id UUID NOT NULL,
@@ -94,12 +94,12 @@ BEGIN
     super_read_id = gen_random_uuid();
     super_delete_id = gen_random_uuid();
 
--- Create root user
+-- Create Superuser
 INSERT INTO auth_account(id, first_name, last_name, dob, email, phone_no, status, date_created, date_updated, created_by, updated_by, password)
-VALUES(root_account_id, 'root', '', '1950-01-01', root_account_email, '+2349999999990', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id, '$2a$12$7BtwA4ZTgyVGM2F7SiCZaeAsM4VD1eP52zrSEdkaP3S60IxCgaXIC');
+VALUES(root_account_id, 'superuser', '', '1950-01-01', root_account_email, '+2349999999990', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id, '$2a$12$7BtwA4ZTgyVGM2F7SiCZaeAsM4VD1eP52zrSEdkaP3S60IxCgaXIC');
 
 INSERT INTO auth_role(id, name, description, date_created, date_updated, created_by, updated_by)
-VALUES(root_role_id, 'SUPERUSER', 'Root administrator role', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id);
+VALUES(root_role_id, 'SUPERUSER', 'Superuser administrator role', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id);
 
 INSERT INTO auth_assignment(account_email, role_id, date_created, created_by)
 VALUES(root_account_email, root_role_id, CURRENT_TIMESTAMP, system_id);

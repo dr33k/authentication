@@ -29,7 +29,7 @@ CREATE TABLE auth_role(
 
 CREATE TABLE auth_domain(
     id UUID PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(100) UNIQUE NOT NULL,
     description VARCHAR(255),
     date_created TIMESTAMP NOT NULL,
     date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -40,7 +40,7 @@ CREATE INDEX auth_domain_name_idx ON auth_domain(name);
 
 CREATE TABLE auth_permission(
     id UUID PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(100) UNIQUE NOT NULL,
     description VARCHAR(255),
     type VARCHAR(20) NOT NULL,
     domain_id UUID NOT NULL,
@@ -74,78 +74,44 @@ CREATE TABLE auth_assignment(
 
 DO $$
 DECLARE
-    root_account_id UUID;
-    root_account_email VARCHAR(255);
-    root_role_id UUID;
+    admin_account_id UUID;
+    admin_account_email VARCHAR(255);
+    admin_role_id UUID;
     system_id VARCHAR(255);
+    global_domain_id UUID;
 BEGIN
-    root_account_id := gen_random_uuid();
-    root_account_email := current_schema||'@seven.com';
-    root_role_id := gen_random_uuid();
-    EXECUTE 'SET app.root_role_id ='|| root_role_id;
+    admin_account_id := gen_random_uuid();
+    admin_account_email := current_schema||'@seven.com';
+    admin_role_id := gen_random_uuid();
     system_id := 'SYSTEM';
+    global_domain_id := gen_random_uuid();
 
--- Create root user
+-- Create an elevated user
 INSERT INTO auth_account(id, first_name, last_name, dob, email, phone_no, status, date_created, date_updated, created_by, updated_by, password)
-VALUES(root_account_id, 'root', '', '1950-01-01', root_account_email, '+2349999999990', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id, '$2a$12$7BtwA4ZTgyVGM2F7SiCZaeAsM4VD1eP52zrSEdkaP3S60IxCgaXIC');
+VALUES(admin_account_id, 'admin', '', '1950-01-01', admin_account_email, '+2349999999990', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id, '$2a$12$7BtwA4ZTgyVGM2F7SiCZaeAsM4VD1eP52zrSEdkaP3S60IxCgaXIC');
 
 INSERT INTO auth_role(id, name, description, date_created, date_updated, created_by, updated_by)
-VALUES(root_role_id, 'SUPERUSER', 'Root administrator role', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id);
+VALUES(admin_role_id, 'ADMIN', 'Administrator role', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id);
 
 INSERT INTO auth_assignment(account_email, role_id, date_created, created_by)
-VALUES(root_account_email, root_role_id, CURRENT_TIMESTAMP, system_id);
+VALUES(admin_account_email, admin_role_id, CURRENT_TIMESTAMP, system_id);
 
+INSERT INTO auth_domain(id, name, description, date_created, date_updated, created_by, updated_by)
+VALUES(global_domain_id, current_schema, 'This is an umbrella domain for all the future domains in the '||current_schema||' schema', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id);
+
+INSERT INTO auth_permission(id, name, description, type, domain_id, date_created, date_updated, created_by, updated_by)
+VALUES
+(elev_create_id, 'elev_create_'||current_schema, 'This represents the CREATE permission that overrides all others for the '||current_schema||' domain', 'CREATE', global_domain_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
+(elev_read_id, 'elev_read_'||current_schema, 'This represents the READ permission that overrides all others for the '||current_schema||' domain', 'READ', global_domain_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
+(elev_update_id, 'elev_update_'||current_schema, 'This represents the UPDATE permission that overrides all others for the '||current_schema||' domain', 'UPDATE', global_domain_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
+(elev_delete_id, 'elev_delete_'||current_schema, 'This represents the DELETE permission that overrides all others for the '||current_schema||' domain', 'DELETE', global_domain_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id)
+;
+
+INSERT INTO auth_grant(id, role_id, permission_id, description, date_created, date_updated, created_by, updated_by)
+VALUES
+(gen_random_uuid(), admin_role_id, elev_create_id, 'Grants the elev_create role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
+(gen_random_uuid(), admin_role_id, elev_update_id, 'Grants the elev_update role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
+(gen_random_uuid(), admin_role_id, elev_read_id, 'Grants the elev_read role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
+(gen_random_uuid(), admin_role_id, elev_delete_id, 'Grants the elev_delete role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
 END
 $$;
-----------------------------------------------------------------
-CREATE OR REPLACE FUNCTION insert_domain(
-schema_name VARCHAR(255),
-d_id UUID,
-d_name VARCHAR(255),
-description VARCHAR(255)
-)
-RETURNS VOID
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    EXECUTE FORMAT('
-        INSERT INTO %I.auth_domain
-        (id, name, description, date_created, date_updated, created_by, updated_by)
-        VALUES
-        ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ''SYSTEM'', ''SYSTEM'');
-    ', schema_name)
-    USING d_id, d_name, description;
-END;
-$$;
------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION insert_permission(
-schema_name VARCHAR(255),
-p_id UUID,
-p_name VARCHAR(255),
-p_type VARCHAR(255),
-p_domain_id UUID,
-description VARCHAR(255)
-)
-RETURNS VOID
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    EXECUTE FORMAT('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
-    EXECUTE FORMAT('
-        INSERT INTO %I.auth_permission
-        (id, name, type, description, domain_id, date_created, date_updated, created_by, updated_by)
-        VALUES
-        ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ''SYSTEM'', ''SYSTEM'');
-     ', schema_name)
-    USING p_id, p_name, p_type, description, p_domain_id;
-    EXECUTE FORMAT('
-        -- Grant to ROOT user
-        INSERT INTO %I.auth_grant
-        (id, permission_id, role_id, date_created, created_by)
-        VALUES
-        (gen_random_uuid(), $1, ''cbededbf-a129-45e7-8ad5-a04239b53c99'', CURRENT_TIMESTAMP, ''SYSTEM'');
-     ', schema_name)
-    USING p_id;
-END;
-$$;
------------------------------------------------------------------
