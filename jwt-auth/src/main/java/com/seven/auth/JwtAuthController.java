@@ -1,14 +1,17 @@
 package com.seven.auth;
 
+import com.seven.auth.exception.AuthorizationException;
+import com.seven.auth.util.Constants;
 import com.seven.auth.util.response.Response;
 import com.seven.auth.account.*;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 import static com.seven.auth.util.response.Responder.created;
 import static com.seven.auth.util.response.Responder.ok;
@@ -24,14 +27,15 @@ public class JwtAuthController {
     }
 
     @PostMapping(value = "/register", produces = "application/json", consumes = "application/json")
-    public ResponseEntity<Response> createResource(@Valid @RequestBody AccountDTO.Create request) {
-            AuthDTO userDTO = jwtService.register(request);
+    public ResponseEntity<Response> createResource(@Valid @RequestBody AccountDTO.Create request, @RequestHeader(name = Constants.TENANT_ID_KEY) UUID tenantId) {
+            AuthDTO userDTO = jwtService.register(request, tenantId);
             return created(userDTO.data, userDTO.token);
     }
 
     @PostMapping(value = "/login", produces = "application/json", consumes = "application/json")
-    public ResponseEntity<Response> login(@Valid @RequestBody JwtLoginRequest request){
-        AuthDTO userDTO = jwtService.login(request);
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER, required = true)
+    public ResponseEntity<Response> login(@Valid @RequestBody JwtLoginRequest request, @RequestHeader(name = Constants.TENANT_ID_KEY) UUID tenantId) throws AuthorizationException {
+        AuthDTO userDTO = jwtService.login(request, tenantId);
         return ok(userDTO.data, userDTO.token);
     }
 }

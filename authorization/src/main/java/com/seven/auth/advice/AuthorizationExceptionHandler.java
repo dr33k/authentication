@@ -2,9 +2,15 @@ package com.seven.auth.advice;
 
 import com.seven.auth.exception.*;
 import com.seven.auth.util.response.Response;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.seven.auth.util.response.Responder.*;
 
@@ -23,5 +29,26 @@ public class AuthorizationExceptionHandler {
             return conflict(ex.getMessage());
         }
         return internalServerError(ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Response> handleValidationExceptions(MethodArgumentNotValidException e){
+        Map<String, String> errors = new HashMap<>();
+
+        e.getBindingResult().getAllErrors().forEach(error -> {
+
+            String fieldName;
+            String errorMessage;
+
+            if (error instanceof FieldError) {
+                fieldName = ((FieldError) error).getField();
+                errorMessage = error.getDefaultMessage();
+            } else {
+                fieldName = error.getObjectName();
+                errorMessage = error.getDefaultMessage();
+            }
+            errors.put(fieldName, errorMessage);
+        });
+        return badRequest(errors);
     }
 }

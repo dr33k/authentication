@@ -10,7 +10,6 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "auth_domain")
@@ -27,7 +26,7 @@ public class Domain {
     @Column
     private String description;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<Permission> permissions;
 
     @CreationTimestamp
@@ -65,7 +64,7 @@ public class Domain {
         d.setName(req.name());
         d.setDescription(req.description());
         d.setPermissions(
-                req.permissions().stream().map(Permission::from).collect(Collectors.toList())
+                req.permissions().stream().map(Permission::from).toList()
         );
         return d;
     }

@@ -11,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.util.UUID;
 
 public class AccountDTO {
 
@@ -28,9 +29,9 @@ public class AccountDTO {
         @Pattern(regexp = "^[+-][0-9]{10,20}$", message = "Invalid phone number format. Include country code")
         String phoneNo,
         @NotBlank(message = "Required field")
-        @Email(regexp = "[\\w{2,}@\\w{2,}\\.\\w{2,}", message = "Invalid email format")
+        @Email(regexp = "^\\w{2,}@\\w{2,}\\.\\w{2,}$", message = "Invalid email format")
         String email,
-        @Pattern(regexp = "^[A-Za-z\\d'.!@#$%^&*_\\-]{8,}",message = "Password must fulfill all requirements")
+        @Pattern(regexp = ".{8,}",message = "Password must be at least 8 characters long")
         String password,
         @Past(message = "Future and current dates not allowed")
         LocalDate dob
@@ -47,7 +48,7 @@ public class AccountDTO {
         @Pattern(regexp = "^[+-][0-9]{10,20}$",message = "Name must be at least 2 characters long")
         String phoneNo,
         @NotBlank
-        @Email(regexp = "[\\w{2,}@\\w{2,}\\.\\w{2,}", message = "Invalid email format")
+        @Email(regexp = "\\w{2,}@\\w{2,}\\.\\w{2,}", message = "Invalid email format")
         String email,
         @Pattern(regexp = "^[A-Za-z\\d'.!@#$%^&*_\\-]{8,}",message = "Password must fulfill all requirements")
         String password,
@@ -69,12 +70,11 @@ public class AccountDTO {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(name = "AccountResponse")
     public record Record(
+            UUID id,
             String firstName,
             String lastName,
             String phoneNo,
             String email,
-            @JsonIgnore
-            String password,
             LocalDate dob,
             ZonedDateTime dateCreated,
             ZonedDateTime dateUpdated,
@@ -83,11 +83,11 @@ public class AccountDTO {
     ){
         public static Record from(Account account){
             return new Record(
+                    account.getId(),
                     account.getFirstName(),
                     account.getLastName(),
                     account.getPhoneNo(),
                     account.getEmail(),
-                    account.getPassword(),
                     account.getDob(),
                     account.getDateCreated(),
                     account.getDateUpdated(),

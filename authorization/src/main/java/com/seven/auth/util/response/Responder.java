@@ -34,6 +34,14 @@ public final class Responder {
                 .timestamp(LocalDateTime.now())
                 .build());
     }
+    public static ResponseEntity <Response> badRequest(Object data) {
+        return ResponseEntity.status(400).body(Response.builder()
+                .data(data)
+                .isError(true)
+                .status(HttpStatus.BAD_REQUEST)
+                .timestamp(LocalDateTime.now())
+                .build());
+    }
 
     public static ResponseEntity <Response> notFound(String message) {
         return ResponseEntity.notFound().build();

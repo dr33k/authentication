@@ -14,7 +14,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "auth_permission")
 @Data
-@ToString
 public class Permission implements GrantedAuthority {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -30,7 +29,7 @@ public class Permission implements GrantedAuthority {
     @Enumerated(EnumType.STRING)
     private PermissionType type;
 
-    @JoinColumn(name = "domain_id")
+    @JoinColumn(name = "domain_id", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     private Domain domain;
 

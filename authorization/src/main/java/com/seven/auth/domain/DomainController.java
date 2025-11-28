@@ -1,10 +1,14 @@
 package com.seven.auth.domain;
 
+import com.seven.auth.util.Constants;
 import com.seven.auth.util.Pagination;
 import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.util.response.Response;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +19,7 @@ import static com.seven.auth.util.response.Responder.noContent;
 import static com.seven.auth.util.response.Responder.ok;
 
 @RestController
-@RequestMapping("/domain")
+@RequestMapping("/domains")
 public class DomainController {
     private final DomainService domainService;
     public DomainController(DomainService domainService) {
@@ -29,7 +33,7 @@ public class DomainController {
     }
 
     @GetMapping
-    public ResponseEntity <Response> getResources(Pagination pagination, DomainDTO.Filter domainFilter)  throws AuthorizationException {
+    public ResponseEntity <Response> getResources(@ParameterObject Pagination pagination,  @ParameterObject DomainDTO.Filter domainFilter)  throws AuthorizationException {
         Page<DomainDTO.Record> domainRecords = domainService.getAll(pagination, domainFilter);
         return ok(domainRecords);
     }

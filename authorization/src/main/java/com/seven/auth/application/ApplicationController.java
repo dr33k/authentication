@@ -1,10 +1,14 @@
 package com.seven.auth.application;
 
+import com.seven.auth.util.Constants;
 import com.seven.auth.util.Pagination;
 import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.util.response.Response;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +19,7 @@ import static com.seven.auth.util.response.Responder.noContent;
 import static com.seven.auth.util.response.Responder.ok;
 
 @RestController
-@RequestMapping("/application")
+@RequestMapping("/applications")
 public class ApplicationController {
     private final ApplicationService applicationService;
     public ApplicationController(ApplicationService applicationService) {
@@ -29,7 +33,7 @@ public class ApplicationController {
     }
 
     @GetMapping
-    public ResponseEntity <Response> getResources(@Valid @RequestParam(required = false) Pagination pagination,@Valid @RequestParam ApplicationDTO.Filter applicationFilter)  throws AuthorizationException {
+    public ResponseEntity <Response> getResources(@ParameterObject Pagination pagination, @ParameterObject ApplicationDTO.Filter applicationFilter)  throws AuthorizationException {
         Page<ApplicationDTO.Record> applicationDTOs = applicationService.getAll(pagination, applicationFilter);
         return ok(applicationDTOs);
     }

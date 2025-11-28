@@ -1,5 +1,6 @@
 package com.seven.auth.account;
 
+import com.seven.auth.config.threadlocal.TenantContext;
 import com.seven.auth.util.Pagination;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -89,7 +90,6 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
         }
     }
 
-    @Transactional
     public void delete(UUID id) {
         try {
             log.info("Deleting account: {}", id);

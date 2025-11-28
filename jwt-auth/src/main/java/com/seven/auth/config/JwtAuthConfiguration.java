@@ -26,9 +26,11 @@ import java.security.SecureRandom;
 @EnableMethodSecurity
 public class JwtAuthConfiguration {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final TenantFilter tenantFilter;
 
-    public JwtAuthConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public JwtAuthConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter, TenantFilter tenantFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.tenantFilter = tenantFilter;
     }
 
     @Bean
@@ -43,7 +45,8 @@ public class JwtAuthConfiguration {
                                 .anyRequest().authenticated()
                 )
 
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(tenantFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, TenantFilter.class)
                 .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();

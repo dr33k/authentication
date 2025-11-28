@@ -3,26 +3,29 @@ package com.seven.auth.config.threadlocal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
 public class TenantContext {
+    private static final Logger log = LoggerFactory.getLogger(TenantContext.class);
     private static final ThreadLocal<String> CURRENT_TENANT = new ThreadLocal<>();
     private static final ThreadLocal<String> CURRENT_DB_VENDOR = new ThreadLocal<>();
 
-    private static final Logger log = LoggerFactory.getLogger(TenantContext.class);
-
+    private TenantContext() {
+    }
 
     public static String getCurrentTenant(){
-        String currentTenant = CURRENT_TENANT.get();
-        return currentTenant == null ?"public" : currentTenant;
+        return Optional.ofNullable(CURRENT_TENANT.get()).orElse("public");
     }
 
     public static void setCurrentTenant(String schemaName){
         log.info("TenantContext: setting current tenant schema {}", schemaName);
-        CURRENT_TENANT.set(schemaName == null ? "public" : schemaName);
+        CURRENT_TENANT.set(Optional.ofNullable(schemaName).orElse("public"));
     }
 
+    public static final void clearTenant(){CURRENT_TENANT.remove();}
+
     public static String getCurrentDbVendor() {
-        String dbVendor = CURRENT_DB_VENDOR.get();
-        return dbVendor == null ? "postgres" : dbVendor.toLowerCase();
+        return Optional.ofNullable(CURRENT_DB_VENDOR.get()).orElse("public");
     }
 
     public static void setCurrentDbVendor(String currentDbVendor) {

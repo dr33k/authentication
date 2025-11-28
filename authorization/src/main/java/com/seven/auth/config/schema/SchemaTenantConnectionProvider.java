@@ -35,7 +35,7 @@ public class SchemaTenantConnectionProvider implements MultiTenantConnectionProv
     @Override
     public Connection getConnection(String schemaName) throws SQLException {
         final Connection connection = dataSource.getConnection();
-        connection.setSchema(schemaName);
+        connection.createStatement().execute("SET SCHEMA '%s';".formatted(schemaName));
         return connection;
     }
 
@@ -57,6 +57,9 @@ public class SchemaTenantConnectionProvider implements MultiTenantConnectionProv
 
     @Override
     public <T> T unwrap(Class<T> unwrapType) {
+        if (unwrapType.isAssignableFrom(getClass())) {
+            return unwrapType.cast(this);
+        }
         return null;
     }
 }

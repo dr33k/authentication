@@ -112,6 +112,7 @@ VALUES
 (gen_random_uuid(), admin_role_id, elev_create_id, 'Grants the elev_create role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
 (gen_random_uuid(), admin_role_id, elev_update_id, 'Grants the elev_update role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
 (gen_random_uuid(), admin_role_id, elev_read_id, 'Grants the elev_read role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
-(gen_random_uuid(), admin_role_id, elev_delete_id, 'Grants the elev_delete role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
+(gen_random_uuid(), admin_role_id, elev_delete_id, 'Grants the elev_delete role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id)
+;
 END
 $$;

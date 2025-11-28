@@ -1,10 +1,14 @@
 package com.seven.auth.grant;
 
+import com.seven.auth.util.Constants;
 import com.seven.auth.util.Pagination;
 import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.util.response.Response;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +19,7 @@ import static com.seven.auth.util.response.Responder.noContent;
 import static com.seven.auth.util.response.Responder.ok;
 
 @RestController
-@RequestMapping("/grant")
+@RequestMapping("/grants")
 public class GrantController {
     private final GrantService grantService;
     public GrantController(GrantService grantService) {
@@ -29,7 +33,7 @@ public class GrantController {
     }
 
     @GetMapping
-    public ResponseEntity <Response> getResources(Pagination pagination, GrantDTO.Filter grantFilter)  throws AuthorizationException {
+    public ResponseEntity <Response> getResources(@ParameterObject Pagination pagination,  @ParameterObject GrantDTO.Filter grantFilter)  throws AuthorizationException {
         Page<GrantDTO.Record> grantRecords = grantService.getAll(pagination, grantFilter);
         return ok(grantRecords);
     }

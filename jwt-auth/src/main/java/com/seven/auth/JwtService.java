@@ -5,7 +5,12 @@ import com.seven.auth.account.Account;
 import com.seven.auth.account.AccountDTO;
 import com.seven.auth.account.AccountService;
 import com.seven.auth.account.AuthDTO;
+import com.seven.auth.application.ApplicationRepository;
+import com.seven.auth.config.threadlocal.TenantContext;
+import com.seven.auth.exception.AuthorizationException;
+import com.seven.auth.exception.ConflictException;
 import com.seven.auth.permission.Permission;
+import com.seven.auth.permission.PermissionDTO;
 import com.seven.auth.permission.PermissionRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -19,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.annotation.ApplicationScope;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -36,13 +42,15 @@ public class JwtService {
     final private PermissionRepository permissionRepository;
     private final AuthenticationProvider authenticationProvider;
     private final ObjectMapper objectMapper;
+    private final ApplicationRepository applicationRepository;
 
-    public JwtService(Environment environment, AccountService accountService, PermissionRepository permissionRepository, AuthenticationProvider authenticationProvider, ObjectMapper objectMapper) {
+    public JwtService(Environment environment, AccountService accountService, PermissionRepository permissionRepository, AuthenticationProvider authenticationProvider, ObjectMapper objectMapper, ApplicationRepository applicationRepository) {
         this.environment = environment;
         this.accountService = accountService;
         this.permissionRepository = permissionRepository;
         this.authenticationProvider = authenticationProvider;
         this.objectMapper = objectMapper;
+        this.applicationRepository = applicationRepository;
     }
 
     public Claims extractClaims(String token) {
@@ -83,15 +91,19 @@ public class JwtService {
         return claims.getExpiration().before(new Date());
     }
 
-    public AuthDTO register(AccountDTO.Create request) {
+    public AuthDTO register(AccountDTO.Create request, UUID tenantId) {
         try {
-            AccountDTO.Record accountRecord = accountService.create(request);
-            List<Permission> permissions = permissionRepository.findAllByAccount(accountRecord.email());
-            String token = generateToken(accountRecord.email(),
-                    Map.of("permissions", permissions,
-                            "principal", accountRecord)
-            );
+            String schemaName = applicationRepository.findById(tenantId).orElseThrow(() -> new ConflictException("Tenant with id %s not found".formatted(tenantId))).getSchemaName();
+            TenantContext.setCurrentTenant(schemaName);
 
+            AccountDTO.Record accountRecord = accountService.create(request);
+            List<PermissionDTO.Record> permissionRecords = permissionRepository.findAllByAccount(accountRecord.email()).stream().map(PermissionDTO.Record::from).toList();
+
+            String token = generateToken(accountRecord.email(),
+                    Map.of("permissions", permissionRecords,
+                            "principal", accountRecord,
+                            "tenant", schemaName)
+            );
             return AuthDTO.builder().data(accountRecord).token(token).build();
         } catch (ResponseStatusException e) {
             log.error("ResponseStatusException; Unable to register account {}. Message: ", request.email(), e);
@@ -102,19 +114,28 @@ public class JwtService {
         }
     }
 
-    public AuthDTO login(JwtLoginRequest request) {
+    public AuthDTO login(JwtLoginRequest request, UUID tenantId) throws AuthorizationException {
+        String schemaName = applicationRepository.findById(tenantId).orElseThrow(() -> new ConflictException("Tenant with id %s not found".formatted(tenantId))).getSchemaName();
+        return login(request, schemaName);
+    }
+
+    @Transactional
+    public AuthDTO login(JwtLoginRequest request, String tenant) {
         try {
+            log.info("Login username: {}; tenant: {}", request.getUsername(), tenant);
             Account account = (Account) authenticationProvider
                     .authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()))
                     .getPrincipal();
             AccountDTO.Record accountRecord = AccountDTO.Record.from(account);
-            List<Permission> permissions = permissionRepository.findAllByAccount(account.getEmail());
-            String token = generateToken(account.getEmail(),
-                    Map.of("permissions", permissions,
-                            "principal", accountRecord)
-            );
-            return AuthDTO.builder().data(accountRecord).token(token).build();
+            List<PermissionDTO.Record> permissionRecords = permissionRepository.findAllByAccount(account.getEmail()).stream().map(PermissionDTO.Record::from).toList();
 
+            String token = generateToken(account.getEmail(),
+                    Map.of("permissions", permissionRecords,
+                            "principal", accountRecord,
+                            "tenant", tenant)
+            );
+            log.info("User {} logged in successfully", request.getUsername());
+            return AuthDTO.builder().data(accountRecord).token(token).build();
         } catch (ResponseStatusException e) {
             log.error("ResponseStatusException; Unable to login {}. Message: ", request.getUsername(), e);
             throw e;
