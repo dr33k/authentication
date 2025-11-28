@@ -27,18 +27,21 @@ public class AssignmentController {
     }
 
     @GetMapping
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> getResources(@ParameterObject Pagination pagination, @ParameterObject AssignmentDTO.Filter assignmentFilter)  throws AuthorizationException {
         Page<AssignmentDTO.Record> assignmentRecords = assignmentService.getAll(pagination, assignmentFilter);
         return ok(assignmentRecords);
     }
 
     @PostMapping
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> createResource(@Valid @RequestBody AssignmentDTO.Create request) throws AuthorizationException {
         AssignmentDTO.Record assignmentRecord = assignmentService.create(request);
         return ok(assignmentRecord);
     }
 
     @DeleteMapping("{assignmentId}")
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> deleteResource(@Valid @NotNull @PathVariable(value = "assignmentId") UUID id) throws AuthorizationException {
         assignmentService.delete(id);
         return noContent();

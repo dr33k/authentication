@@ -1,8 +1,11 @@
 package com.seven.auth.permission;
 
 import com.seven.auth.exception.AuthorizationException;
+import com.seven.auth.util.Constants;
 import com.seven.auth.util.Pagination;
 import com.seven.auth.util.response.Response;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springdoc.core.annotations.ParameterObject;
@@ -24,30 +27,35 @@ public class PermissionController {
     }
 
     @GetMapping("{permissionId}")
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "permissionId") UUID id)  throws AuthorizationException {
         PermissionDTO.Record permissionRecord = permissionService.get(id);
         return ok(permissionRecord);
     }
 
     @GetMapping
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> getResources(@ParameterObject Pagination pagination,  @ParameterObject PermissionDTO.Filter permissionFilter)  throws AuthorizationException {
         Page<PermissionDTO.Record> permissionRecords = permissionService.getAll(pagination, permissionFilter);
         return ok(permissionRecords);
     }
 
     @PostMapping
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> createResource(@Valid @RequestBody PermissionDTO.Create request) throws AuthorizationException {
         PermissionDTO.Record permissionRecord = permissionService.create(request);
         return ok(permissionRecord);
     }
 
 //    @PutMapping("/{permissionId}")
+//    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
 //    public ResponseEntity <Response> updateResource(@Valid @NotNull @PathVariable(value = "permissionId") UUID id, @Valid @RequestBody PermissionDTO.Update request) {
 //       PermissionDTO.Record permissionRecord = permissionService.update(id, request);
 //        return ok(permissionRecord);
 //    }
     
     @DeleteMapping("{permissionId}")
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> deleteResource(@Valid @NotNull @PathVariable(value = "permissionId") UUID id) throws AuthorizationException {
         permissionService.delete(id);
         return noContent();

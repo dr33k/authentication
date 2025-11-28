@@ -33,7 +33,6 @@ public class JwtAuthController {
     }
 
     @PostMapping(value = "/login", produces = "application/json", consumes = "application/json")
-    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER, required = true)
     public ResponseEntity<Response> login(@Valid @RequestBody JwtLoginRequest request, @RequestHeader(name = Constants.TENANT_ID_KEY) UUID tenantId) throws AuthorizationException {
         AuthDTO userDTO = jwtService.login(request, tenantId);
         return ok(userDTO.data, userDTO.token);

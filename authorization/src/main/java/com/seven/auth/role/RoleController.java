@@ -27,30 +27,35 @@ public class RoleController {
     }
 
     @GetMapping("{roleId}")
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "roleId") UUID id)  throws AuthorizationException {
         RoleDTO.Record roleRecord = roleService.get(id);
         return ok(roleRecord);
     }
 
     @GetMapping
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> getResources(@ParameterObject Pagination pagination, @ParameterObject RoleDTO.Filter roleFilter)  throws AuthorizationException {
         Page<RoleDTO.Record> roleRecords = roleService.getAll(pagination, roleFilter);
         return ok(roleRecords);
     }
 
     @PostMapping
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> createResource(@Valid @RequestBody RoleDTO.Create request) throws AuthorizationException {
         RoleDTO.Record roleRecord = roleService.create(request);
         return ok(roleRecord);
     }
 
 //    @PutMapping("/{roleId}")
+//    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
 //    public ResponseEntity <Response> updateResource(@Valid @NotNull @PathVariable(value = "roleId") UUID id, @Valid @RequestBody RoleDTO.Update request) {
 //       RoleDTO.Record roleRecord = roleService.update(id, request);
 //        return ok(roleRecord);
 //    }
     
     @DeleteMapping("{roleId}")
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> deleteResource(@Valid @NotNull @PathVariable(value = "roleId") UUID id) throws AuthorizationException {
         roleService.delete(id);
         return noContent();

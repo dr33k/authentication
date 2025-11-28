@@ -27,30 +27,35 @@ public class GrantController {
     }
 
     @GetMapping("{grantId}")
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "grantId") UUID id)  throws AuthorizationException {
         GrantDTO.Record grantRecord = grantService.get(id);
         return ok(grantRecord);
     }
 
     @GetMapping
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> getResources(@ParameterObject Pagination pagination,  @ParameterObject GrantDTO.Filter grantFilter)  throws AuthorizationException {
         Page<GrantDTO.Record> grantRecords = grantService.getAll(pagination, grantFilter);
         return ok(grantRecords);
     }
 
     @PostMapping
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> createResource(@Valid @RequestBody GrantDTO.Create request) throws AuthorizationException {
         GrantDTO.Record grantRecord = grantService.create(request);
         return ok(grantRecord);
     }
 
 //    @PutMapping("/{grantId}")
+//    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
 //    public ResponseEntity <Response> updateResource(@Valid @NotNull @PathVariable(value = "grantId") UUID id, @Valid @RequestBody GrantDTO.Update request) {
 //       GrantDTO.Record grantRecord = grantService.update(id, request);
 //        return ok(grantRecord);
 //    }
     
     @DeleteMapping("{grantId}")
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> deleteResource(@Valid @NotNull @PathVariable(value = "grantId") UUID id) throws AuthorizationException {
         grantService.delete(id);
         return noContent();

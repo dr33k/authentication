@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table(schema = "public", name = "auth_application")
+@Table(name = "auth_application")
 @Data
 @ToString
 public class Application {

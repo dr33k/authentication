@@ -27,24 +27,28 @@ public class AccountController {
     }
 
     @GetMapping("{accountId}")
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "accountId") UUID id) {
         AccountDTO.Record accountRecord = accountService.get(id);
         return ok(accountRecord);
     }
 
     @PutMapping("{accountId}")
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> updateResource(@Valid @NotNull @PathVariable(value = "accountId") UUID id, @Valid @RequestBody AccountDTO.Update request) {
         AccountDTO.Record accountRecord = accountService.update(id, request);
         return ok(accountRecord);
     }
 
     @PostMapping
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> createResource(@Valid @RequestBody AccountDTO.Create create){
         AccountDTO.Record record = accountService.create(create);
         return ok(record);
     }
 
     @DeleteMapping("{accountId}")
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
     public ResponseEntity <Response> deleteResource(@Valid @NotNull @PathVariable(value = "accountId") UUID id) {
         accountService.delete(id);
         return noContent();

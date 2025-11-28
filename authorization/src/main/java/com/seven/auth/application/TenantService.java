@@ -17,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -43,16 +45,14 @@ public class TenantService {
     private final AccountRepository accountRepository;
     private final DomainRepository domainRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final SchemaTenantIdentifierResolver tenantIdentifierResolver;
     private final DataSource dataSource;
 
-    public TenantService(ApplicationRepository applicationRepository, AccountRepository accountRepository, DomainRepository domainRepository, BCryptPasswordEncoder bCryptPasswordEncoder, SchemaTenantIdentifierResolver tenantIdentifierResolver,
+    public TenantService(ApplicationRepository applicationRepository, AccountRepository accountRepository, DomainRepository domainRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
                          DataSource dataSource) {
         this.applicationRepository = applicationRepository;
         this.accountRepository = accountRepository;
         this.domainRepository = domainRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-        this.tenantIdentifierResolver = tenantIdentifierResolver;
         this.dataSource = dataSource;
     }
 
@@ -95,7 +95,7 @@ public class TenantService {
             log.info("Schema: {} created successfully in DB", appRequest.schemaName());
 
             //Switch to newly created schema
-            tenantIdentifierResolver.setTenantIdentifier(appRequest.schemaName());
+            TenantContext.setCurrentTenant(appRequest.schemaName());
 
             //Set Admin email and password
             setAdminCredentials(appRequest);
@@ -104,31 +104,32 @@ public class TenantService {
             insertDomainsAndPermissions(appRequest);
 
             //Switch to authorization schema
-            tenantIdentifierResolver.setTenantIdentifier(Constants.AUTHORIZATION_SCHEMA_NAME);
+            TenantContext.setCurrentTenant(Constants.AUTHORIZATION_SCHEMA_NAME);
 
             //Insert application record
             Application application = Application.from(appRequest);
             applicationRepository.save(application);
-
-            //Switch to public schema
-            tenantIdentifierResolver.setTenantIdentifier("public");
 
             log.info("Provisioned new schema: {}", appRequest.name());
             return application;
         } catch (Exception e) {
             log.error("Error trying to provision schema. Trace:", e);
             throw new ConflictException(String.format("Error provisioning schema. Message: %s", e.getMessage()));
+        } finally {
+            TenantContext.clearTenant();
         }
     }
 
-    private void insertDomainsAndPermissions(ApplicationDTO.Create appRequest) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void insertDomainsAndPermissions(ApplicationDTO.Create appRequest) {
         log.info("Inserting Domains and related permissions");
         List<Domain> domains = appRequest.domains().stream().map(Domain::from).toList();
         domainRepository.saveAll(domains);
         log.info("Domains and related permissions inserted successfully");
     }
 
-    private void setAdminCredentials(ApplicationDTO.Create appRequest) throws ConflictException, IOException {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void setAdminCredentials(ApplicationDTO.Create appRequest) throws ConflictException, IOException {
         log.info("Setting Admin credentials");
         String adminUsername = appRequest.schemaName() + "@seven.com";
         String adminPassword = UUID.randomUUID().toString();
