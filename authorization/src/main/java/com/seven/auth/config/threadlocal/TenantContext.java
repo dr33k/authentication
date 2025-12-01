@@ -22,10 +22,11 @@ public class TenantContext {
         CURRENT_TENANT.set(Optional.ofNullable(schemaName).orElse("public"));
     }
 
-    public static final void clearTenant(){CURRENT_TENANT.remove();}
+    public static void clearTenant(){CURRENT_TENANT.remove();}
+    public static void clearCurrentDbVendor(){CURRENT_DB_VENDOR.remove();}
 
     public static String getCurrentDbVendor() {
-        return Optional.ofNullable(CURRENT_DB_VENDOR.get()).orElse("public");
+        return Optional.ofNullable(CURRENT_DB_VENDOR.get()).orElse("postgresql");
     }
 
     public static void setCurrentDbVendor(String currentDbVendor) {

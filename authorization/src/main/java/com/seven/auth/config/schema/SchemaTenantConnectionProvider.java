@@ -1,5 +1,6 @@
 package com.seven.auth.config.schema;
 
+import com.seven.auth.config.threadlocal.TenantContext;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.jdbc.connections.spi.DatabaseConnectionInfo;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
@@ -36,12 +37,14 @@ public class SchemaTenantConnectionProvider implements MultiTenantConnectionProv
     public Connection getConnection(String schemaName) throws SQLException {
         final Connection connection = dataSource.getConnection();
         connection.createStatement().execute("SET SCHEMA '%s';".formatted(schemaName));
+        TenantContext.setCurrentDbVendor(connection.getMetaData().getDatabaseProductName().toLowerCase());
         return connection;
     }
 
     @Override
     public void releaseConnection(String schemaName, Connection connection) throws SQLException {
         connection.createStatement().execute("SET SCHEMA 'public';");
+        TenantContext.clearCurrentDbVendor();
         connection.close();
     }
 

@@ -79,12 +79,20 @@ DECLARE
     admin_role_id UUID;
     system_id VARCHAR(255);
     global_domain_id UUID;
+    elev_create_id UUID;
+    elev_update_id UUID;
+    elev_read_id UUID;
+    elev_delete_id UUID;
 BEGIN
     admin_account_id := gen_random_uuid();
     admin_account_email := current_schema||'@seven.com';
     admin_role_id := gen_random_uuid();
     system_id := 'SYSTEM';
     global_domain_id := gen_random_uuid();
+    elev_create_id = gen_random_uuid();
+    elev_update_id = gen_random_uuid();
+    elev_read_id = gen_random_uuid();
+    elev_delete_id = gen_random_uuid();
 
 -- Create an elevated user
 INSERT INTO auth_account(id, first_name, last_name, dob, email, phone_no, status, date_created, date_updated, created_by, updated_by, password)
@@ -107,12 +115,12 @@ VALUES
 (elev_delete_id, 'elev_delete_'||current_schema, 'This represents the DELETE permission that overrides all others for the '||current_schema||' domain', 'DELETE', global_domain_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id)
 ;
 
-INSERT INTO auth_grant(id, role_id, permission_id, description, date_created, date_updated, created_by, updated_by)
+INSERT INTO auth_grant(id, role_id, permission_id, description, date_created, created_by)
 VALUES
-(gen_random_uuid(), admin_role_id, elev_create_id, 'Grants the elev_create role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
-(gen_random_uuid(), admin_role_id, elev_update_id, 'Grants the elev_update role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
-(gen_random_uuid(), admin_role_id, elev_read_id, 'Grants the elev_read role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id),
-(gen_random_uuid(), admin_role_id, elev_delete_id, 'Grants the elev_delete role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, system_id, system_id)
+(gen_random_uuid(), admin_role_id, elev_create_id, 'Grants the elev_create role to the admin', CURRENT_TIMESTAMP, system_id),
+(gen_random_uuid(), admin_role_id, elev_update_id, 'Grants the elev_update role to the admin', CURRENT_TIMESTAMP, system_id),
+(gen_random_uuid(), admin_role_id, elev_read_id, 'Grants the elev_read role to the admin', CURRENT_TIMESTAMP, system_id),
+(gen_random_uuid(), admin_role_id, elev_delete_id, 'Grants the elev_delete role to the admin', CURRENT_TIMESTAMP, system_id)
 ;
 END
 $$;

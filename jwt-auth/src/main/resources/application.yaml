@@ -4,7 +4,8 @@ spring:
 
   flyway:
     enabled: true
-    locations: classpath:db/migrations/default/postgres
+    locations: classpath:db/migrations/default/postgresql
+    schemas: [authorization]
 
   datasource:
     username: ${PG_USER}
