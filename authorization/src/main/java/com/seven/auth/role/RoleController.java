@@ -1,5 +1,7 @@
 package com.seven.auth.role;
 
+import com.seven.auth.annotation.Authorize;
+import com.seven.auth.permission.PEnum;
 import com.seven.auth.util.Constants;
 import com.seven.auth.util.Pagination;
 import com.seven.auth.exception.AuthorizationException;
@@ -28,6 +30,7 @@ public class RoleController {
 
     @GetMapping("{roleId}")
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
+    @Authorize(permissions = {PEnum.read_role, PEnum.super_read})
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "roleId") UUID id)  throws AuthorizationException {
         RoleDTO.Record roleRecord = roleService.get(id);
         return ok(roleRecord);
@@ -35,6 +38,7 @@ public class RoleController {
 
     @GetMapping
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
+    @Authorize(permissions = {PEnum.read_role, PEnum.super_read})
     public ResponseEntity <Response> getResources(@ParameterObject Pagination pagination, @ParameterObject RoleDTO.Filter roleFilter)  throws AuthorizationException {
         Page<RoleDTO.Record> roleRecords = roleService.getAll(pagination, roleFilter);
         return ok(roleRecords);
@@ -42,6 +46,7 @@ public class RoleController {
 
     @PostMapping
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
+    @Authorize(permissions = {PEnum.create_role, PEnum.super_create})
     public ResponseEntity <Response> createResource(@Valid @RequestBody RoleDTO.Create request) throws AuthorizationException {
         RoleDTO.Record roleRecord = roleService.create(request);
         return ok(roleRecord);
@@ -56,6 +61,7 @@ public class RoleController {
     
     @DeleteMapping("{roleId}")
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
+    @Authorize(permissions = {PEnum.delete_role, PEnum.super_delete})
     public ResponseEntity <Response> deleteResource(@Valid @NotNull @PathVariable(value = "roleId") UUID id) throws AuthorizationException {
         roleService.delete(id);
         return noContent();

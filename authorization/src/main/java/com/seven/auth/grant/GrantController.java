@@ -1,5 +1,7 @@
 package com.seven.auth.grant;
 
+import com.seven.auth.annotation.Authorize;
+import com.seven.auth.permission.PEnum;
 import com.seven.auth.util.Constants;
 import com.seven.auth.util.Pagination;
 import com.seven.auth.exception.AuthorizationException;
@@ -28,6 +30,7 @@ public class GrantController {
 
     @GetMapping("{grantId}")
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
+    @Authorize(permissions = {PEnum.read_grant, PEnum.super_read})
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "grantId") UUID id)  throws AuthorizationException {
         GrantDTO.Record grantRecord = grantService.get(id);
         return ok(grantRecord);
@@ -35,6 +38,7 @@ public class GrantController {
 
     @GetMapping
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
+    @Authorize(permissions = {PEnum.read_grant, PEnum.super_read})
     public ResponseEntity <Response> getResources(@ParameterObject Pagination pagination,  @ParameterObject GrantDTO.Filter grantFilter)  throws AuthorizationException {
         Page<GrantDTO.Record> grantRecords = grantService.getAll(pagination, grantFilter);
         return ok(grantRecords);
@@ -42,6 +46,7 @@ public class GrantController {
 
     @PostMapping
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
+    @Authorize(permissions = {PEnum.create_grant, PEnum.super_create})
     public ResponseEntity <Response> createResource(@Valid @RequestBody GrantDTO.Create request) throws AuthorizationException {
         GrantDTO.Record grantRecord = grantService.create(request);
         return ok(grantRecord);
@@ -56,6 +61,7 @@ public class GrantController {
     
     @DeleteMapping("{grantId}")
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
+    @Authorize(permissions = {PEnum.delete_grant, PEnum.super_delete})
     public ResponseEntity <Response> deleteResource(@Valid @NotNull @PathVariable(value = "grantId") UUID id) throws AuthorizationException {
         grantService.delete(id);
         return noContent();
