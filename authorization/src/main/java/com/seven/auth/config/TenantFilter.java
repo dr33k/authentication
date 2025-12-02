@@ -33,6 +33,7 @@ public class TenantFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
+            log.info("---------------------------------------AUTHORIZATION---------------------------------------------------------------");
             setTenant(request, (String) request.getAttribute("tenant"));
             filterChain.doFilter(request, response);
         } finally {

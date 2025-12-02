@@ -21,7 +21,7 @@ import static com.seven.auth.util.response.Responder.noContent;
 import static com.seven.auth.util.response.Responder.ok;
 
 @RestController
-@RequestMapping("/grants")
+@RequestMapping(Constants.PATH_PREFIX+"/grants")
 public class GrantController {
     private final GrantService grantService;
     public GrantController(GrantService grantService) {

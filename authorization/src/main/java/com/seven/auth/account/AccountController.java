@@ -18,7 +18,7 @@ import static com.seven.auth.util.response.Responder.noContent;
 import static com.seven.auth.util.response.Responder.ok;
 
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping(Constants.PATH_PREFIX+"/accounts")
 public class AccountController {
     AccountService accountService;
     public AccountController(AccountService accountService) {
@@ -27,7 +27,7 @@ public class AccountController {
 
     @GetMapping("{accountId}")
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
-    @Authorize(permissions = {PEnum.read_acc, PEnum.super_read})
+    @Authorize(permissions = {PEnum.read_account, PEnum.super_read})
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "accountId") UUID id) throws AuthorizationException {
         AccountDTO.Record accountRecord = accountService.get(id);
         return ok(accountRecord);
@@ -35,7 +35,7 @@ public class AccountController {
 
     @PutMapping("{accountId}")
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
-    @Authorize(permissions = {PEnum.update_acc, PEnum.super_update})
+    @Authorize(permissions = {PEnum.update_account, PEnum.super_update})
     public ResponseEntity <Response> updateResource(@Valid @NotNull @PathVariable(value = "accountId") UUID id, @Valid @RequestBody AccountDTO.Update request) throws AuthorizationException {
         AccountDTO.Record accountRecord = accountService.update(id, request);
         return ok(accountRecord);
@@ -43,7 +43,7 @@ public class AccountController {
 
     @PostMapping
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
-    @Authorize(permissions = {PEnum.create_acc, PEnum.super_create})
+    @Authorize(permissions = {PEnum.create_account, PEnum.super_create})
     public ResponseEntity <Response> createResource(@Valid @RequestBody AccountDTO.Create create) throws AuthorizationException {
         AccountDTO.Record record = accountService.create(create);
         return ok(record);

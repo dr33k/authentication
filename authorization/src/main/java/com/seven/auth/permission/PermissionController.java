@@ -20,7 +20,7 @@ import static com.seven.auth.util.response.Responder.noContent;
 import static com.seven.auth.util.response.Responder.ok;
 
 @RestController
-@RequestMapping("/permissions")
+@RequestMapping(Constants.PATH_PREFIX+"/permissions")
 public class PermissionController {
     private final PermissionService permissionService;
     public PermissionController(PermissionService permissionService) {
@@ -29,7 +29,7 @@ public class PermissionController {
 
     @GetMapping("{permissionId}")
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
-    @Authorize(permissions = {PEnum.read_perm, PEnum.super_read})
+    @Authorize(permissions = {PEnum.read_permission, PEnum.super_read})
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "permissionId") UUID id)  throws AuthorizationException {
         PermissionDTO.Record permissionRecord = permissionService.get(id);
         return ok(permissionRecord);
@@ -37,7 +37,7 @@ public class PermissionController {
 
     @GetMapping
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
-    @Authorize(permissions = {PEnum.read_perm, PEnum.super_read})
+    @Authorize(permissions = {PEnum.read_permission, PEnum.super_read})
     public ResponseEntity <Response> getResources(@ParameterObject Pagination pagination,  @ParameterObject PermissionDTO.Filter permissionFilter)  throws AuthorizationException {
         Page<PermissionDTO.Record> permissionRecords = permissionService.getAll(pagination, permissionFilter);
         return ok(permissionRecords);
@@ -45,7 +45,7 @@ public class PermissionController {
 
     @PostMapping
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
-    @Authorize(permissions = {PEnum.create_perm, PEnum.super_create})
+    @Authorize(permissions = {PEnum.create_permission, PEnum.super_create})
     public ResponseEntity <Response> createResource(@Valid @RequestBody PermissionDTO.Create request) throws AuthorizationException {
         PermissionDTO.Record permissionRecord = permissionService.create(request);
         return ok(permissionRecord);
@@ -60,7 +60,7 @@ public class PermissionController {
     
     @DeleteMapping("{permissionId}")
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
-    @Authorize(permissions = {PEnum.delete_perm, PEnum.super_delete})
+    @Authorize(permissions = {PEnum.delete_permission, PEnum.super_delete})
     public ResponseEntity <Response> deleteResource(@Valid @NotNull @PathVariable(value = "permissionId") UUID id) throws AuthorizationException {
         permissionService.delete(id);
         return noContent();

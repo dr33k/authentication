@@ -21,7 +21,7 @@ import static com.seven.auth.util.response.Responder.noContent;
 import static com.seven.auth.util.response.Responder.ok;
 
 @RestController
-@RequestMapping("/applications")
+@RequestMapping(Constants.PATH_PREFIX+"/applications")
 public class ApplicationController {
     private final ApplicationService applicationService;
     public ApplicationController(ApplicationService applicationService) {

@@ -21,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -45,12 +46,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     if (email != null) {
                         if (jwtService.isTokenValid(claims)) {
-                            CollectionType listType = objectMapper.getTypeFactory().constructCollectionType(List.class, PermissionDTO.Record.class);
+                            CollectionType setType = objectMapper.getTypeFactory().constructCollectionType(Set.class, PermissionDTO.Record.class);
 
                             //Extract permissions
-                            List<PermissionDTO.Record> permissions = (List<PermissionDTO.Record>) objectMapper.readValue(
+                            Set<PermissionDTO.Record> permissions = (Set<PermissionDTO.Record>) objectMapper.readValue(
                                     objectMapper.writeValueAsString(claims.get("permissions")),
-                                    listType
+                                    setType
                             );
                             //Extract account record
                             AccountDTO.Record accountRecord = objectMapper.convertValue(claims.get("principal"), AccountDTO.Record.class);

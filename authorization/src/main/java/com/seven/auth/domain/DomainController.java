@@ -21,7 +21,7 @@ import static com.seven.auth.util.response.Responder.noContent;
 import static com.seven.auth.util.response.Responder.ok;
 
 @RestController
-@RequestMapping("/domains")
+@RequestMapping(Constants.PATH_PREFIX+"/domains")
 public class DomainController {
     private final DomainService domainService;
     public DomainController(DomainService domainService) {

@@ -21,7 +21,7 @@ import static com.seven.auth.util.response.Responder.noContent;
 import static com.seven.auth.util.response.Responder.ok;
 
 @RestController
-@RequestMapping("/roles")
+@RequestMapping(Constants.PATH_PREFIX+"/roles")
 public class RoleController {
     private final RoleService roleService;
     public RoleController(RoleService roleService) {

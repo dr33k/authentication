@@ -1,43 +1,64 @@
 package com.seven.auth.annotation;
 
+import com.seven.auth.exception.AuthorizationException;
+import com.seven.auth.exception.ConflictException;
+import com.seven.auth.exception.ForbiddenException;
 import com.seven.auth.permission.PEnum;
+import com.seven.auth.permission.PermissionDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
-@Slf4j
+
+@Component
 public class AuthorizationHandlerInterceptor implements HandlerInterceptor {
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler){
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws AuthorizationException{
         try {
-//            String tokenSubject = (String) request.getAttribute("subject");
-//            Set<String> tokenRoles = (Set<String>) request.getAttribute("roles");
-            Set<String> tokenPermissions = (Set<String>)request.getAttribute("permissions");
+            Set<String> tokenPermissions = ((Set<PermissionDTO.Record>) request.getAttribute("permissions")).stream().map(PermissionDTO.Record::name).collect(Collectors.toSet());
+            log.info("User permissions: {}", tokenPermissions);
 
             if (handler instanceof HandlerMethod) {
-                HandlerMethod handlerMethod = (HandlerMethod) handler;
-                log.info("Java method: {}", handlerMethod.getMethod().getName());
-                Authorize authorize = handlerMethod.getMethod().getAnnotation(Authorize.class);
+                Method method = ((HandlerMethod) handler).getMethod();
+                Authorize authorize = method.getAnnotation(Authorize.class);
 
-                if (authorize == null) return true;
-
-//                Set<String> annRoles = Arrays.stream(authorize.roles()).collect(Collectors.toSet());
+                if (authorize == null) {
+                    log.info("UNAUTHORIZED ENDPOINT");
+                    return true;
+                }
                 Set<String> annPermissions = Arrays.stream(authorize.permissions()).map(PEnum::name).collect(Collectors.toSet());
 
-                return annPermissions.stream().anyMatch(tokenPermissions::contains);
+                boolean isAuthorized = annPermissions.stream().anyMatch(tokenPermissions::contains);
+                if (!isAuthorized) {
+                    log.warn("UNAUTHORIZED USER");
+                    throw new ForbiddenException("Access Denied");
+                }
+                log.info("AUTHORIZED");
+                return true;
             }
             else if (handler instanceof ResourceHttpRequestHandler) return true;
-
-            log.warn("HANDLER INTERCEPTOR LEAK");
-            return false;
-        }catch (Exception e){throw  new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());}
+            else {
+                log.warn("HANDLER INTERCEPTOR LEAK");
+                throw new ForbiddenException("Access Denied");
+            }
+        } catch (AuthorizationException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error in Authorization Handler Interceptor: ", e);
+            throw new ForbiddenException("Access Denied");
+        }
     }
 }
