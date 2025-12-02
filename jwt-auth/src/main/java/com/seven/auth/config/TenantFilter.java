@@ -23,7 +23,7 @@ import java.util.UUID;
 public class TenantFilter extends OncePerRequestFilter {
     private final Logger log = LoggerFactory.getLogger(getClass());
     //These URIs do not require a tenant id
-    private final List<String> whitelist = List.of("/su/auth", "/swagger", "/swagger-ui", "/v3/api-docs", "/applications");
+    private final List<String> whitelist = List.of("/swagger", "/swagger-ui", "/v3/api-docs", "/applications");
     private final ApplicationRepository applicationRepository;
 
     public TenantFilter(ApplicationRepository applicationRepository) {
@@ -43,16 +43,27 @@ public class TenantFilter extends OncePerRequestFilter {
     private void setTenant(HttpServletRequest request, String tenant) {
         try {
             String path = request.getRequestURI();
+            //Paths not visited by users
             if (isPathWhitelisted(path)) {
-                TenantContext.setCurrentTenant(Constants.PUBLIC_SCHEMA);
                 log.info("WHITELISTED: {}", path);
+                TenantContext.setCurrentTenant(Constants.PUBLIC_SCHEMA);
+            }
+
+            //Authentication paths
+            else if (path.startsWith("/su/auth/")) {
+                log.info("Superuser authentication path");
+                TenantContext.setCurrentTenant(Constants.AUTHORIZATION_SCHEMA);
             } else if (path.startsWith("/auth/")) {
+                log.info("Authentication path");
                 String tenantId = request.getHeader("X-Tenant-Id");
                 assert tenantId != null : "Tenant not provided";
                 tenant = applicationRepository.findById(UUID.fromString(tenantId)).orElseThrow(() -> new ConflictException("Tenant with id %s not found".formatted(tenantId))).getSchemaName();
                 TenantContext.setCurrentTenant(tenant);
-            } else if (Constants.AUTHORIZATION_SCHEMA.equals(tenant)) {
-                //If the path isn't whitelisted but still wants to be accessed by a superuser then a tenantId must be provided.
+            }
+
+            //Regular paths where tenantIds are optional
+            else if (Constants.AUTHORIZATION_SCHEMA.equals(tenant)) {
+                //If the path is to be accessed by a superuser then a tenantId is expected.
                 //If not, it defaults to the authorization schema
                 String tenantId = request.getHeader("X-Tenant-Id");
                 if (tenantId != null)
