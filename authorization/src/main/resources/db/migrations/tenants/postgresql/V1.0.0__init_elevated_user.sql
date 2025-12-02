@@ -94,8 +94,8 @@ VALUES(admin_account_id, 'admin', '', '1950-01-01', admin_account_email, '+23499
 INSERT INTO auth_role(id, name, description, date_created, date_updated, created_by, updated_by)
 VALUES(admin_role_id, 'ADMIN', 'Administrator role', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, admin_account_email, admin_account_email);
 
-INSERT INTO auth_assignment(account_email, role_id, date_created, created_by)
-VALUES(admin_account_email, admin_role_id, CURRENT_TIMESTAMP, admin_account_email);
+INSERT INTO auth_assignment(account_email, role_id, date_created, date_updated, created_by, updated_by)
+VALUES(admin_account_email, admin_role_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, admin_account_email, admin_account_email);
 
 INSERT INTO auth_domain(id, name, description, date_created, date_updated, created_by, updated_by)
 VALUES(global_domain_id, current_schema, 'This is an umbrella domain for all the future domains in the '||current_schema||' schema', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, admin_account_email, admin_account_email);
@@ -108,12 +108,12 @@ VALUES
 (elev_delete_id, 'elev_delete_'||current_schema, 'This represents the DELETE permission that overrides all others for the '||current_schema||' domain', 'DELETE', global_domain_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, admin_account_email, admin_account_email)
 ;
 
-INSERT INTO auth_grant(id, role_id, permission_id, description, date_created, created_by)
+INSERT INTO auth_grant(id, role_id, permission_id, description, date_created, date_updated, created_by, updated_by)
 VALUES
-(gen_random_uuid(), admin_role_id, elev_create_id, 'Grants the elev_create role to the admin', CURRENT_TIMESTAMP, admin_account_email),
-(gen_random_uuid(), admin_role_id, elev_update_id, 'Grants the elev_update role to the admin', CURRENT_TIMESTAMP, admin_account_email),
-(gen_random_uuid(), admin_role_id, elev_read_id, 'Grants the elev_read role to the admin', CURRENT_TIMESTAMP, admin_account_email),
-(gen_random_uuid(), admin_role_id, elev_delete_id, 'Grants the elev_delete role to the admin', CURRENT_TIMESTAMP, admin_account_email)
+(gen_random_uuid(), admin_role_id, elev_create_id, 'Grants the elev_create role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, admin_account_email, admin_account_email),
+(gen_random_uuid(), admin_role_id, elev_update_id, 'Grants the elev_update role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, admin_account_email, admin_account_email),
+(gen_random_uuid(), admin_role_id, elev_read_id, 'Grants the elev_read role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, admin_account_email, admin_account_email),
+(gen_random_uuid(), admin_role_id, elev_delete_id, 'Grants the elev_delete role to the admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, admin_account_email, admin_account_email)
 ;
 END
 $$;

@@ -63,10 +63,4 @@ public class JwtAuthConfiguration{
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder(12);
     }
-
-    @Bean
-    @ApplicationScope
-    public Authentication authentication() {
-        return SecurityContextHolder.getContext().getAuthentication();
-    }
 }

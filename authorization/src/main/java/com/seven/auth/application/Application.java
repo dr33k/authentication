@@ -1,4 +1,5 @@
 package com.seven.auth.application;
+import com.seven.auth.config.AuditableEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
@@ -13,7 +14,7 @@ import java.util.UUID;
 @Table(name = "auth_application")
 @Data
 @ToString
-public class Application {
+public class Application extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -26,20 +27,6 @@ public class Application {
 
     @Column
     private String description;
-
-    @CreationTimestamp
-    @Column(nullable = false)
-    private ZonedDateTime dateCreated;
-
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private ZonedDateTime dateUpdated;
-
-    @Column
-    private String createdBy = "SYSTEM";
-
-    @Column
-    private String updatedBy = "SYSTEM";
 
     public Application() {
     }

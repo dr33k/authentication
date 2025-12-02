@@ -59,10 +59,10 @@ public class Account implements Serializable, UserDetails {
     private ZonedDateTime dateUpdated;
 
     @Column
-    private String createdBy = "SYSTEM";
+    private String createdBy = "root@seven.com";
 
     @Column
-    private String updatedBy = "SYSTEM";
+    private String updatedBy = "root@seven.com";
     public enum AccountStatus{ACTIVE, INACTIVE}
 
     public Account() {

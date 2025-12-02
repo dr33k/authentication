@@ -58,14 +58,18 @@ CREATE TABLE auth_grant(
     permission_id UUID NOT NULL FOREIGN KEY REFERENCES auth_permission(id) ON DELETE CASCADE,
     description VARCHAR(255),
     date_created TIMESTAMP NOT NULL,
-    created_by VARCHAR(255) VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE CASCADE ON UPDATE CASCADE
+    date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE CASCADE ON UPDATE CASCADE,
+    updated_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE auth_assignment(
     account_email VARCHAR(255) NOT NULL FOREIGN KEY(account_email) REFERENCES auth_account(email) ON DELETE CASCADE,
     role_id UUID NOT NULL FOREIGN KEY(role_id) REFERENCES auth_role(id) ON DELETE CASCADE,
     date_created TIMESTAMP NOT NULL,
+    date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE CASCADE ON UPDATE CASCADE,
+    updated_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE CASCADE ON UPDATE CASCADE,
     PRIMARY KEY(account_email, role_id)
 );
 
@@ -96,8 +100,8 @@ VALUES (root_account_id, 'superuser', '', '1950-01-01', root_account_email, '+23
 INSERT INTO auth_role(id, name, description, date_created, date_updated, created_by, updated_by)
 VALUES(root_role_id, 'SUPERUSER', 'Superuser administrator role', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email);
 
-INSERT INTO auth_assignment(account_email, role_id, date_created, created_by)
-VALUES(root_account_email, root_role_id, CURRENT_TIMESTAMP, root_account_email);
+INSERT INTO auth_assignment(account_email, role_id, date_created, date_updated, created_by, updated_by)
+VALUES(root_account_email, root_role_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email);
 
 INSERT INTO auth_domain(id, name, description, date_created, date_updated, created_by, updated_by)
 VALUES(authorization_domain_id, 'authorization', 'This represents the authorization application domain', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email);
@@ -110,12 +114,12 @@ VALUES
 (super_delete_id, 'super_delete', 'This represents the DELETE permission that overrides all others', 'DELETE', authorization_domain_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email)
 ;
 
-INSERT INTO auth_grant(id, role_id, permission_id, description, date_created, created_by)
+INSERT INTO auth_grant(id, role_id, permission_id, description, date_created, date_updated, created_by, updated_by)
 VALUES
-(gen_random_uuid(), root_role_id, super_create_id, 'Grants the super_create role to the superuser', CURRENT_TIMESTAMP, root_account_email),
-(gen_random_uuid(), root_role_id, super_update_id, 'Grants the super_update role to the superuser', CURRENT_TIMESTAMP, root_account_email),
-(gen_random_uuid(), root_role_id, super_read_id, 'Grants the super_read role to the superuser', CURRENT_TIMESTAMP, root_account_email),
-(gen_random_uuid(), root_role_id, super_delete_id, 'Grants the super_delete role to the superuser', CURRENT_TIMESTAMP, root_account_email)
+(gen_random_uuid(), root_role_id, super_create_id, 'Grants the super_create role to the superuser', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email),
+(gen_random_uuid(), root_role_id, super_update_id, 'Grants the super_update role to the superuser', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email),
+(gen_random_uuid(), root_role_id, super_read_id, 'Grants the super_read role to the superuser', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email),
+(gen_random_uuid(), root_role_id, super_delete_id, 'Grants the super_delete role to the superuser', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email)
 ;
 --Create permissions for the Authorization domain
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

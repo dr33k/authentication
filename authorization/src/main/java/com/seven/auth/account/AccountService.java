@@ -25,11 +25,13 @@ import java.util.UUID;
 public class AccountService implements UserDetailsService, UserDetailsPasswordService {
     private final AccountRepository accountRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final AccountDTO.Record principal;
 
     public AccountService(AccountRepository accountRepository,
-                          BCryptPasswordEncoder passwordEncoder) {
+                          BCryptPasswordEncoder passwordEncoder, AccountDTO.Record principal) {
         this.accountRepository = accountRepository;
         this.bCryptPasswordEncoder = passwordEncoder;
+        this.principal = principal;
     }
 
     public Page<AccountDTO.Record> getAll(Pagination pagination, AccountDTO.Filter accountFilter) throws AuthorizationException  {
@@ -77,6 +79,7 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
 
             //Encode password
             account.setPassword(bCryptPasswordEncoder.encode(accountCreateRequest.password()));
+            account.setCreatedBy(principal.email());
             account = accountRepository.save(account);
             AccountDTO.Record record = AccountDTO.Record.from(account);
 
