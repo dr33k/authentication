@@ -2,24 +2,20 @@ package com.seven.auth.application;
 
 import com.seven.auth.account.Account;
 import com.seven.auth.account.AccountRepository;
-import com.seven.auth.config.schema.SchemaTenantIdentifierResolver;
 import com.seven.auth.config.threadlocal.TenantContext;
 import com.seven.auth.domain.Domain;
 import com.seven.auth.domain.DomainRepository;
 import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.exception.ConflictException;
 import com.seven.auth.util.Constants;
-import com.seven.auth.util.SQLExecutor;
 import jakarta.persistence.EntityManager;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.Location;
 import org.flywaydb.core.api.configuration.ClassicConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
@@ -30,10 +26,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * The TenantService performs the singular task of registering an app and
@@ -60,6 +54,7 @@ public class TenantService {
         this.em = em;
     }
 
+    @Transactional
     public ApplicationDTO.Record register(ApplicationDTO.Create appRequest) throws AuthorizationException {
         try {
             String schemaName = appRequest.schemaName();
@@ -99,7 +94,7 @@ public class TenantService {
             log.info("Schema: {} created successfully in DB", appRequest.schemaName());
 
             //Switch to newly created schema
-            em.createQuery("SET SCHEMA '%s';".formatted(appRequest.schemaName())).executeUpdate();
+            em.createNativeQuery("SET SCHEMA '%s'".formatted(appRequest.schemaName())).executeUpdate();
 
             //Set Admin email and password
             setAdminCredentials(appRequest);
@@ -108,7 +103,7 @@ public class TenantService {
             insertDomainsAndPermissions(appRequest);
 
             //Switch to authorization schema
-            em.createQuery("SET SCHEMA '%s';".formatted(Constants.AUTHORIZATION_SCHEMA_NAME)).executeUpdate();
+            em.createNativeQuery("SET SCHEMA '%s'".formatted(Constants.PUBLIC_SCHEMA)).executeUpdate();
 
             //Insert application record
             Application application = Application.from(appRequest);
@@ -120,13 +115,17 @@ public class TenantService {
             log.error("Error trying to provision schema. Trace:", e);
             throw new ConflictException(String.format("Error provisioning schema. Message: %s", e.getMessage()));
         } finally {
-            em.createQuery("SET SCHEMA '%s';".formatted("public")).executeUpdate();
+            em.createNativeQuery("SET SCHEMA '%s'".formatted(Constants.PUBLIC_SCHEMA)).executeUpdate();
         }
     }
 
     private void insertDomainsAndPermissions(ApplicationDTO.Create appRequest) {
         log.info("Inserting Domains and related permissions");
-        List<Domain> domains = appRequest.domains().stream().map(Domain::from).toList();
+        List<Domain> domains = appRequest.domains().stream().map(domainRequest -> {
+            Domain d = Domain.from(domainRequest);
+            d.getPermissions().forEach(permission -> permission.setDomain(d));
+            return d;
+        }).toList();
         domainRepository.saveAll(domains);
         log.info("Domains and related permissions inserted successfully");
     }
@@ -135,17 +134,17 @@ public class TenantService {
         log.info("Setting Admin credentials");
         String adminUsername = appRequest.schemaName() + "@seven.com";
         String adminPassword = UUID.randomUUID().toString();
-        Account admin = accountRepository.findByEmail(adminUsername).orElseThrow(()-> new ConflictException("Elevated user not found please contact administrator"));
+        Account admin = accountRepository.findByEmail(adminUsername).orElseThrow(() -> new ConflictException("Elevated user not found please contact administrator"));
         admin.setPassword(bCryptPasswordEncoder.encode(adminPassword));
         accountRepository.save(admin);
 
         //Create credentials file
         Path userHomeDir = Paths.get(System.getProperty("user.home"));
-        Path credentialsFilePath = userHomeDir.resolve(appRequest.schemaName()+"_credentials.txt");
+        Path credentialsFilePath = userHomeDir.resolve(appRequest.schemaName() + "_credentials.txt");
         Files.deleteIfExists(credentialsFilePath);
         File credentialsFile = Files.createFile(credentialsFilePath).toFile();
 
-        try(FileOutputStream fos = new FileOutputStream(credentialsFile)){
+        try (FileOutputStream fos = new FileOutputStream(credentialsFile)) {
             fos.write("Username:%s\nPassword:%s".formatted(adminUsername, adminPassword).getBytes(StandardCharsets.UTF_8));
         }
         log.info("Credentials file: {}", credentialsFilePath.toAbsolutePath());
@@ -153,10 +152,11 @@ public class TenantService {
 
     /**
      * This runs the script responsible for dropping an application's schema
+     *
      * @param app
      * @throws IOException
      */
-    public void dropSchema(Application app){
+    public void  dropSchema(Application app) {
         try {
             log.info("Dropping schema: {} in DB", app.getName());
 
@@ -173,10 +173,12 @@ public class TenantService {
     public Flyway buildTenantFlyway(DataSource dataSource, Application app) {
         return buildTenantFlyway(dataSource, app.getSchemaName());
     }
+
     public Flyway buildTenantFlyway(DataSource dataSource, ApplicationDTO.Create appRequest) {
         return buildTenantFlyway(dataSource, appRequest.schemaName());
     }
-    public Flyway buildTenantFlyway(DataSource dataSource,String schemaName) {
+
+    public Flyway buildTenantFlyway(DataSource dataSource, String schemaName) {
         log.info("Instantiating flyway for Schema: {} in DB", schemaName);
         String dbVendor = TenantContext.getCurrentDbVendor();
         log.info("DB Vendor: {}", dbVendor);

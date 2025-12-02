@@ -1,5 +1,4 @@
-CREATE SCHEMA IF NOT EXISTS "authorization";
-SET SCHEMA 'authorization';
+SET SCHEMA 'public';
 
 CREATE TABLE auth_application (
         id UUID PRIMARY KEY,

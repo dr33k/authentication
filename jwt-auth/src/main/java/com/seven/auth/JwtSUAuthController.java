@@ -25,7 +25,7 @@ public class JwtSUAuthController {
 
     @PostMapping(value = "/login", produces = "application/json", consumes = "application/json")
     public ResponseEntity<Response> login(@Valid @RequestBody JwtLoginRequest request){
-        AuthDTO userDTO = jwtService.login(request, Constants.AUTHORIZATION_SCHEMA_NAME);
+        AuthDTO userDTO = jwtService.login(request, Constants.AUTHORIZATION_SCHEMA);
         return ok(userDTO.data, userDTO.token);
     }
 }

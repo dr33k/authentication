@@ -26,7 +26,7 @@ public class Domain {
     @Column
     private String description;
 
-    @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Permission> permissions;
 
     @CreationTimestamp
@@ -44,6 +44,10 @@ public class Domain {
     private String updatedBy = "SYSTEM";
 
     public Domain() {
+    }
+
+    public Domain(UUID id) {
+        this.id = id;
     }
 
     @Override

@@ -40,21 +40,25 @@ public class TenantFilter extends OncePerRequestFilter {
         }
     }
 
-    private void setTenant(HttpServletRequest request, String tenant){
+    private void setTenant(HttpServletRequest request, String tenant) {
         try {
             String path = request.getRequestURI();
             if (isPathWhitelisted(path)) {
-                TenantContext.setCurrentTenant(Constants.AUTHORIZATION_SCHEMA_NAME);
+                TenantContext.setCurrentTenant(Constants.PUBLIC_SCHEMA);
                 log.info("WHITELISTED: {}", path);
-            } else if(Constants.AUTHORIZATION_SCHEMA_NAME.equals(tenant)){
+            } else if (path.startsWith("/auth/")) {
+                String tenantId = request.getHeader("X-Tenant-Id");
+                assert tenantId != null : "Tenant not provided";
+                tenant = applicationRepository.findById(UUID.fromString(tenantId)).orElseThrow(() -> new ConflictException("Tenant with id %s not found".formatted(tenantId))).getSchemaName();
+                TenantContext.setCurrentTenant(tenant);
+            } else if (Constants.AUTHORIZATION_SCHEMA.equals(tenant)) {
                 //If the path isn't whitelisted but still wants to be accessed by a superuser then a tenantId must be provided.
                 //If not, it defaults to the authorization schema
                 String tenantId = request.getHeader("X-Tenant-Id");
-                if(tenantId != null)
+                if (tenantId != null)
                     tenant = applicationRepository.findById(UUID.fromString(tenantId)).orElseThrow(() -> new ConflictException("Tenant with id %s not found".formatted(tenantId))).getSchemaName();
                 TenantContext.setCurrentTenant(tenant);
-            }
-            else {
+            } else {
                 assert tenant != null : "Tenant not provided";
                 TenantContext.setCurrentTenant(tenant);
             }

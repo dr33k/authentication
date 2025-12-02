@@ -1,8 +1,13 @@
 package com.seven.auth.account;
 
 import com.seven.auth.config.threadlocal.TenantContext;
+import com.seven.auth.exception.AuthorizationException;
+import com.seven.auth.exception.ClientException;
+import com.seven.auth.exception.ConflictException;
+import com.seven.auth.exception.NotFoundException;
 import com.seven.auth.util.Pagination;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +36,7 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
         this.bCryptPasswordEncoder = passwordEncoder;
     }
 
-    public Page<AccountDTO.Record> getAll(Pagination pagination, AccountDTO.Filter accountFilter) {
+    public Page<AccountDTO.Record> getAll(Pagination pagination, AccountDTO.Filter accountFilter) throws AuthorizationException  {
         try {
             log.info("Fetching accounts: limit {}, offset {}", pagination.getLimit(), pagination.getOffset());
             Pageable pageable = PageRequest.of(pagination.getLimit(), pagination.getOffset(),
@@ -43,34 +48,34 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
             return accountRepository.findAll(AccountSearchSpecification.getAllAndFilter(accountFilter), pageable).map(AccountDTO.Record::from);
         } catch (Exception e) {
             log.error("Unable to fetch accounts. Message: ", e);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ClientException(e.getMessage());
         }
     }
 
-    public AccountDTO.Record get(UUID id) {
+    public AccountDTO.Record get(UUID id)throws AuthorizationException {
         try {
             log.info("Fetching account: {}", id);
-            Account accountFromDb = accountRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "This account does not exist or has been deleted"));
+            Account accountFromDb = accountRepository.findById(id).orElseThrow(
+                    () -> new NotFoundException("This account does not exist or has been deleted"));
 
             AccountDTO.Record record = AccountDTO.Record.from(accountFromDb);
             log.info("Account {} successfully retrieved", id);
             return record;
-        } catch (ResponseStatusException e) {
-            log.error("ResponseStatusException; Unable to fetch account: {}. Message: ", id, e);
+        } catch (AuthorizationException e) {
+            log.error("Unable to fetch account: {}. Message: {}", id, e.getMessage());
             throw e;
         } catch (Exception e) {
             log.error("Unable to fetch account: {}. Message: ", id, e);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ClientException(e.getMessage());
         }
     }
 
     @Transactional
-    public AccountDTO.Record create(AccountDTO.Create accountCreateRequest) {
+    public AccountDTO.Record create(AccountDTO.Create accountCreateRequest) throws AuthorizationException {
         try {
             log.info("Creating account: {}", accountCreateRequest.email());
             if (accountRepository.existsByEmail(accountCreateRequest.email()))
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "An account with this email already exists");
+                throw new ConflictException("An account with this email already exists");
 
             Account account = Account.from(accountCreateRequest);
 
@@ -81,36 +86,32 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
 
             log.info("Account {} successfully created", account.getId());
             return record;
-        } catch (ResponseStatusException e) {
-            log.error("ResponseStatusException; Unable to create account: {}. Message: ", accountCreateRequest.email(), e);
+        } catch (AuthorizationException e) {
+            log.error("Unable to create account: {}. Message: {}", accountCreateRequest.email(), e.getMessage());
             throw e;
         } catch (Exception e) {
             log.error("Unable to create account: {}. Message: ", accountCreateRequest.email(), e);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ConflictException(e.getMessage());
         }
     }
 
-    public void delete(UUID id) {
+    public void delete(UUID id) throws AuthorizationException {
         try {
             log.info("Deleting account: {}", id);
-
             accountRepository.deleteById(id);
             log.info("Account: {} deleted successfully", id);
-        } catch (ResponseStatusException e) {
-            log.error("ResponseStatusException; Unable to delete account: {}. Message: ", id, e);
-            throw e;
         } catch (Exception e) {
-            log.error("Unable to delete account: {}. Message: ", id, e);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            log.error("Unable to delete account: {}. Message: {}", id, e.getMessage());
+            throw new ConflictException(e.getMessage());
         }
     }
 
     @Transactional
-    public AccountDTO.Record update(UUID id, AccountDTO.Update accountUpdateRequest) {
+    public AccountDTO.Record update(UUID id, AccountDTO.Update accountUpdateRequest) throws AuthorizationException{
         try {
             log.info("Modifying account: {}", id);
             Account account = accountRepository.findById(id)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account account could not be found"));
+                    .orElseThrow(() -> new NotFoundException("Account account could not be found"));
 
             Account.update(account, accountUpdateRequest);
             accountRepository.save(account);
@@ -118,12 +119,12 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
 
             log.info("Account {} successfully modified", account.getId());
             return record;
-        } catch (ResponseStatusException e) {
-            log.error("ResponseStatusException; Unable to modify account: {}. Message: ", id, e);
+        } catch (AuthorizationException e) {
+            log.error("AuthorizationException; Unable to modify account: {}. Message: {}", id, e.getMessage());
             throw e;
         } catch (Exception e) {
             log.error("Unable to modify account: {}. Message: ", id, e);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ConflictException(e.getMessage());
         }
     }
 
