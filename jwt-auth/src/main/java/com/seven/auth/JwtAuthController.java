@@ -27,14 +27,16 @@ public class JwtAuthController {
     }
 
     @PostMapping(value = "/register", produces = "application/json", consumes = "application/json")
-    public ResponseEntity<Response> createResource(@Valid @RequestBody AccountDTO.Create request, @RequestHeader(name = Constants.TENANT_ID_KEY) UUID tenantId) {
-            AuthDTO userDTO = jwtService.register(request, tenantId);
-            return created(userDTO.data, userDTO.token);
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER, required = true)
+    public ResponseEntity<Response> createResource(@Valid @RequestBody AccountDTO.Create request) throws AuthorizationException {
+            AuthDTO userDTO = jwtService.register(request);
+            return created(userDTO.data, userDTO.token, "/domains" );
     }
 
     @PostMapping(value = "/login", produces = "application/json", consumes = "application/json")
-    public ResponseEntity<Response> login(@Valid @RequestBody JwtLoginRequest request, @RequestHeader(name = Constants.TENANT_ID_KEY) UUID tenantId) throws AuthorizationException {
-        AuthDTO userDTO = jwtService.login(request, tenantId);
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER, required = true)
+    public ResponseEntity<Response> login(@Valid @RequestBody JwtLoginRequest request) throws AuthorizationException {
+        AuthDTO userDTO = jwtService.login(request);
         return ok(userDTO.data, userDTO.token);
     }
 }

@@ -73,11 +73,12 @@ public final class Responder {
                 .build());
     }
 
-    public static ResponseEntity<Response> created(Object records, String location) {
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri().path(location).buildAndExpand().toUri();
+    public static ResponseEntity<Response> created(Object records, String token, String location) {
+        URI uri = ServletUriComponentsBuilder.fromUri(URI.create(location)).buildAndExpand().toUri();
         return ResponseEntity.status(201).location(uri).body(
                 Response.builder()
                 .data(records)
+                .token(token)
                 .isError(false)
                 .status(HttpStatus.CREATED)
                 .timestamp(LocalDateTime.now())
