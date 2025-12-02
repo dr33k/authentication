@@ -21,9 +21,9 @@ public class DomainDTO {
     @Schema(name = "DomainCreateRequest")
     public record Create(
         @NotBlank(message = "Required field")
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
+        @Pattern(regexp = "^\\w{2,30}$", message = "Name must be a sequence of at 2-30 alphanumeric characters")
         String name,
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Description must be at least 2 characters long")
+        @Pattern(regexp = "^\\w{2,30}$", message = "Description must be a sequence of 2-30 alphanumeric characters")
         String description,
         @NotEmpty @NotNull
         List<PermissionDTO.Create> permissions
@@ -33,11 +33,11 @@ public class DomainDTO {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(name = "DomainUpdateRequest")
     public record Update(
-        @NotBlank(message = "Required field")
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
-        String name,
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Description must be at least 2 characters long")
-        String description
+            @NotBlank(message = "Required field")
+            @Pattern(regexp = "^\\w{2,30}$", message = "Name must be a sequence of at 2-30 alphanumeric characters")
+            String name,
+            @Pattern(regexp = "^\\w{2,30}$", message = "Description must be a sequence of 2-30 alphanumeric characters")
+            String description
         ){}
 
     @Schema(name = "DomainFilterRequest")

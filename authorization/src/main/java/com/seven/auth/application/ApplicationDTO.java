@@ -18,9 +18,9 @@ public class ApplicationDTO {
     @Schema(name = "AppCreateRequest")
     public record Create(
         @NotBlank(message = "Required field")
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
+        @Pattern(regexp = "^\\w{2,30}$", message = "Name must be a sequence of at least 2 alphanumeric characters")
         String name,
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Description must be at least 2 characters long")
+        @Pattern(regexp = "^\\w{2,30}$", message = "Description must be a sequence of at least 2 alphanumeric characters")
         String description,
         List<DomainDTO.Create> domains
     ){

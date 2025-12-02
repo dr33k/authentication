@@ -1,6 +1,5 @@
 package com.seven.auth.account;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -19,53 +18,58 @@ public class AccountDTO {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(name = "AccountCreateRequest")
     public record Create(
-        @NotBlank(message = "Required field")
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
-        String firstName,
-        @NotBlank(message = "Required field")
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
-        String lastName,
-        @NotBlank(message = "Required field")
-        @Pattern(regexp = "^[+-][0-9]{10,20}$", message = "Invalid phone number format. Include country code")
-        String phoneNo,
-        @NotBlank(message = "Required field")
-        @Email(regexp = "^\\w{2,}@\\w{2,}\\.\\w{2,}$", message = "Invalid email format")
-        String email,
-        @Pattern(regexp = ".{8,}",message = "Password must be at least 8 characters long")
-        String password,
-        @Past(message = "Future and current dates not allowed")
-        LocalDate dob
-    ){}
+            @NotBlank(message = "Required field")
+            @Pattern(regexp = "^[A-Za-z\\-]{2,30}$", message = "First name must be a sequence of 2-30 alphabetic characters")
+            String firstName,
+            @NotBlank(message = "Required field")
+            @Pattern(regexp = "^[A-Za-z\\-]{2,30}$", message = "Last name must be a sequence of 2-30 alphabetic characters")
+            String lastName,
+            @NotBlank(message = "Required field")
+            @Pattern(regexp = "^[+-][0-9]{10,20}$", message = "Invalid phone number format")
+            String phoneNo,
+            @NotBlank(message = "Required field")
+            @Email(regexp = "^\\w{2,}@\\w{2,}\\.\\w{2,}$", message = "Invalid email format")
+            String email,
+            @Pattern(regexp = ".{8,}", message = "Password must be at least 8 characters long")
+            String password,
+            @Past(message = "Future and current dates not allowed")
+            LocalDate dob
+    ) {
+    }
 
     @Validated
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(name = "AccountUpdateRequest")
     public record Update(
-        @Pattern(regexp = "^[A-Za-z'\\-]{2,30}",message = "Name must be at least 2 characters long")
-        String firstName,
-        @Pattern(regexp = "^[A-Za-z'\\-]{2,30}",message = "Name must be at least 2 characters long")
-        String lastName,
-        @Pattern(regexp = "^[+-][0-9]{10,20}$",message = "Name must be at least 2 characters long")
-        String phoneNo,
-        @NotBlank
-        @Email(regexp = "\\w{2,}@\\w{2,}\\.\\w{2,}", message = "Invalid email format")
-        String email,
-        @Pattern(regexp = "^[A-Za-z\\d'.!@#$%^&*_\\-]{8,}",message = "Password must fulfill all requirements")
-        String password,
-        @Past(message = "Future and current dates not allowed")
-        LocalDate dob
-    ){}
+            @NotBlank(message = "Required field")
+            @Pattern(regexp = "^[A-Za-z\\-]{2,30}$", message = "First name must be a sequence of 2-30 alphabetic characters")
+            String firstName,
+            @NotBlank(message = "Required field")
+            @Pattern(regexp = "^[A-Za-z\\-]{2,30}$", message = "Last name must be a sequence of 2-30 alphabetic characters")
+            String lastName,
+            @Pattern(regexp = "^[+-][0-9]{10,20}$", message = "Invalid phone number format")
+            String phoneNo,
+            @NotBlank
+            @Email(regexp = "\\w{2,}@\\w{2,}\\.\\w{2,}", message = "Invalid email format")
+            String email,
+            @Pattern(regexp = "^[A-Za-z\\d'.!@#$%^&*_\\-]{8,}", message = "Password must fulfill all requirements")
+            String password,
+            @Past(message = "Future and current dates not allowed")
+            LocalDate dob
+    ) {
+    }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(name = "AccountFilterRequest")
     public record Filter(
-        String name,
-        String phoneNo,
-        String email,
-        LocalDate dob,
-        ZonedDateTime dateCreatedFrom,
-        ZonedDateTime dateCreatedTo
-    ){}
+            String name,
+            String phoneNo,
+            String email,
+            LocalDate dob,
+            ZonedDateTime dateCreatedFrom,
+            ZonedDateTime dateCreatedTo
+    ) {
+    }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(name = "AccountResponse")
@@ -80,8 +84,8 @@ public class AccountDTO {
             ZonedDateTime dateUpdated,
             String createdBy,
             String updatedBy
-    ){
-        public static Record from(Account account){
+    ) {
+        public static Record from(Account account) {
             return new Record(
                     account.getId(),
                     account.getFirstName(),

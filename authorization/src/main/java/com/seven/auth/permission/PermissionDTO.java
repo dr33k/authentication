@@ -20,12 +20,14 @@ public class PermissionDTO {
     @Schema(name = "PermissionCreateRequest")
     public record Create(
         @NotBlank(message = "Required field")
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
+        @Pattern(regexp = "^\\w{2,30}$", message = "Name must be a sequence of 2-30 alphanumeric characters")
         String name,
         @NotNull(message = "Required field")
         Permission.PermissionType type,
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Description must be at least 2 characters long")
-        String description
+        @Pattern(regexp = "^\\w{2,30}$", message = "Description must be a sequence of 2-30 alphanumeric characters")
+        String description,
+        @NotNull(message = "Required field")
+        UUID domainId
     ){}
 
     @Validated
@@ -33,9 +35,9 @@ public class PermissionDTO {
     @Schema(name = "PermissionUpdateRequest")
     public record Update(
             @NotBlank(message = "Required field")
-            @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
+            @Pattern(regexp = "^\\w{2,30}$", message = "Name must be a sequence of 2-30 alphanumeric characters")
             String name,
-            @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Description must be at least 2 characters long")
+            @Pattern(regexp = "^\\w{2,30}$", message = "Description must be a sequence of 2-30 alphanumeric characters")
             String description,
             @NotNull(message = "Required field")
             Permission.PermissionType type

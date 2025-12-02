@@ -19,9 +19,9 @@ public class RoleDTO {
     @Schema(name = "RoleCreateRequest")
     public record Create(
         @NotBlank(message = "Required field")
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
+        @Pattern(regexp = "^\\w{2,30}$", message = "Name must be a sequence of 2-30 alphanumeric characters")
         String name,
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Description must be at least 2 characters long")
+        @Pattern(regexp = "^\\w{2,30}$", message = "Description must be a sequence of 2-30 alphanumeric characters")
         String description
     ){}
 
@@ -30,9 +30,9 @@ public class RoleDTO {
     @Schema(name = "RoleUpdateRequest")
     public record Update(
         @NotBlank(message = "Required field")
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Name must be at least 2 characters long")
+        @Pattern(regexp = "^\\w{2,30}$", message = "Name must be a sequence of 2-30 alphanumeric characters")
         String name,
-        @Pattern(regexp = "^[A-Za-z]{2,30}$", message = "Description must be at least 2 characters long")
+        @Pattern(regexp = "^\\w{2,30}$", message = "Description must be a sequence of 2-30 alphanumeric characters")
         String description
         ){}
 

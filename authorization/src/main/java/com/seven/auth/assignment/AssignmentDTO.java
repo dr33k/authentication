@@ -16,7 +16,7 @@ public class AssignmentDTO {
     @Schema(name = "AssignmentCreateRequest")
     public record Create(
         @NotBlank(message = "Required field")
-        @Email(regexp = "[\\w{2,}@\\w{2,}\\.\\w{2,}", message = "Invalid email format")
+        @Email(regexp = "\\w{2,}@\\w{2,}\\.\\w{2,}", message = "Invalid email format")
         String accountEmail,
         @NotNull
         UUID roleId
