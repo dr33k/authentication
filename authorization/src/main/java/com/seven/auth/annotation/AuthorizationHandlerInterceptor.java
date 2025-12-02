@@ -1,5 +1,6 @@
 package com.seven.auth.annotation;
 
+import com.seven.auth.permission.PEnum;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +18,8 @@ public class AuthorizationHandlerInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler){
         try {
-            String tokenSubject = (String) request.getAttribute("subject");
-            Set<String> tokenRoles = (Set<String>) request.getAttribute("roles");
+//            String tokenSubject = (String) request.getAttribute("subject");
+//            Set<String> tokenRoles = (Set<String>) request.getAttribute("roles");
             Set<String> tokenPermissions = (Set<String>)request.getAttribute("permissions");
 
             if (handler instanceof HandlerMethod) {
@@ -28,10 +29,10 @@ public class AuthorizationHandlerInterceptor implements HandlerInterceptor {
 
                 if (authorize == null) return true;
 
-                Set<String> annRoles = Arrays.stream(authorize.roles()).collect(Collectors.toSet());
-                Set<String> annPermissions = Arrays.stream(authorize.privileges()).collect(Collectors.toSet());
+//                Set<String> annRoles = Arrays.stream(authorize.roles()).collect(Collectors.toSet());
+                Set<String> annPermissions = Arrays.stream(authorize.permissions()).map(PEnum::name).collect(Collectors.toSet());
 
-                return tokenRoles.stream().anyMatch(annRoles::contains) || tokenPermissions.stream().anyMatch(annPermissions::contains);
+                return annPermissions.stream().anyMatch(tokenPermissions::contains);
             }
             else if (handler instanceof ResourceHttpRequestHandler) return true;
 
