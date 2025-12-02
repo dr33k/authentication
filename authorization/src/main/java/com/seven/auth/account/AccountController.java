@@ -1,13 +1,12 @@
 package com.seven.auth.account;
 
-import com.seven.auth.application.ApplicationDTO;
 import com.seven.auth.exception.AuthorizationException;
+import com.seven.auth.permission.PEnum;
 import com.seven.auth.util.Constants;
 import com.seven.auth.util.response.Response;
 import com.seven.auth.annotation.Authorize;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.headers.Header;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +27,7 @@ public class AccountController {
 
     @GetMapping("{accountId}")
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
+    @Authorize(permissions = {PEnum.read_acc, PEnum.elev_read, PEnum.super_read})
     public ResponseEntity <Response> getResource(@Valid @NotNull @PathVariable(value = "accountId") UUID id) throws AuthorizationException {
         AccountDTO.Record accountRecord = accountService.get(id);
         return ok(accountRecord);
@@ -35,6 +35,7 @@ public class AccountController {
 
     @PutMapping("{accountId}")
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
+    @Authorize(permissions = {PEnum.update_acc, PEnum.elev_update, PEnum.super_update})
     public ResponseEntity <Response> updateResource(@Valid @NotNull @PathVariable(value = "accountId") UUID id, @Valid @RequestBody AccountDTO.Update request) throws AuthorizationException {
         AccountDTO.Record accountRecord = accountService.update(id, request);
         return ok(accountRecord);
@@ -42,6 +43,7 @@ public class AccountController {
 
     @PostMapping
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
+    @Authorize(permissions = {PEnum.elev_create, PEnum.super_create})
     public ResponseEntity <Response> createResource(@Valid @RequestBody AccountDTO.Create create) throws AuthorizationException {
         AccountDTO.Record record = accountService.create(create);
         return ok(record);
@@ -49,6 +51,7 @@ public class AccountController {
 
     @DeleteMapping("{accountId}")
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
+    @Authorize(permissions = {PEnum.elev_delete, PEnum.super_delete})
     public ResponseEntity <Response> deleteResource(@Valid @NotNull @PathVariable(value = "accountId") UUID id) throws AuthorizationException  {
         accountService.delete(id);
         return noContent();
