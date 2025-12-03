@@ -14,6 +14,7 @@ import org.flywaydb.core.api.Location;
 import org.flywaydb.core.api.configuration.ClassicConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.auditing.AuditingHandler;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,15 +44,17 @@ public class TenantService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final DataSource dataSource;
     private final EntityManager em;
+    private final AuditingHandler auditingHandler;
 
     public TenantService(ApplicationRepository applicationRepository, AccountRepository accountRepository, DomainRepository domainRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
-                         DataSource dataSource, EntityManager em) {
+                         DataSource dataSource, EntityManager em, AuditingHandler auditingHandler) {
         this.applicationRepository = applicationRepository;
         this.accountRepository = accountRepository;
         this.domainRepository = domainRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.dataSource = dataSource;
         this.em = em;
+        this.auditingHandler = auditingHandler;
     }
 
     @Transactional
@@ -97,10 +100,10 @@ public class TenantService {
             em.createNativeQuery("SET SCHEMA '%s'".formatted(appRequest.schemaName())).executeUpdate();
 
             //Set Admin email and password
-            setAdminCredentials(appRequest);
+            Account schemaAdmin = setAdminCredentials(appRequest);
 
             //insert domains and permissions
-            insertDomainsAndPermissions(appRequest);
+            insertDomainsAndPermissions(appRequest, schemaAdmin);
 
             //Switch to authorization schema
             em.createNativeQuery("SET SCHEMA '%s'".formatted(Constants.PUBLIC_SCHEMA)).executeUpdate();
@@ -119,24 +122,13 @@ public class TenantService {
         }
     }
 
-    private void insertDomainsAndPermissions(ApplicationDTO.Create appRequest) {
-        log.info("Inserting Domains and related permissions");
-        List<Domain> domains = appRequest.domains().stream().map(domainRequest -> {
-            Domain d = Domain.from(domainRequest);
-            d.getPermissions().forEach(permission -> permission.setDomain(d));
-            return d;
-        }).toList();
-        domainRepository.saveAll(domains);
-        log.info("Domains and related permissions inserted successfully");
-    }
-
-    private void setAdminCredentials(ApplicationDTO.Create appRequest) throws ConflictException, IOException {
+    private Account setAdminCredentials(ApplicationDTO.Create appRequest) throws ConflictException, IOException {
         log.info("Setting Admin credentials");
-        String adminUsername = appRequest.schemaName() + "@seven.com";
+        String adminEmail = appRequest.schemaName() + "@seven.com";
         String adminPassword = UUID.randomUUID().toString();
-        Account admin = accountRepository.findByEmail(adminUsername).orElseThrow(() -> new ConflictException("Elevated user not found please contact administrator"));
+        Account admin = accountRepository.findByEmail(adminEmail).orElseThrow(() -> new ConflictException("Elevated user not found please contact administrator"));
         admin.setPassword(bCryptPasswordEncoder.encode(adminPassword));
-        accountRepository.save(admin);
+        admin = accountRepository.save(admin);
 
         //Create credentials file
         Path userHomeDir = Paths.get(System.getProperty("user.home"));
@@ -145,9 +137,29 @@ public class TenantService {
         File credentialsFile = Files.createFile(credentialsFilePath).toFile();
 
         try (FileOutputStream fos = new FileOutputStream(credentialsFile)) {
-            fos.write("Username:%s\nPassword:%s".formatted(adminUsername, adminPassword).getBytes(StandardCharsets.UTF_8));
+            fos.write("Username:%s\nPassword:%s".formatted(adminEmail, adminPassword).getBytes(StandardCharsets.UTF_8));
         }
         log.info("Credentials file: {}", credentialsFilePath.toAbsolutePath());
+        return admin;
+    }
+
+    private void insertDomainsAndPermissions(ApplicationDTO.Create appRequest, Account schemaAdmin) {
+        log.info("Inserting Domains and related permissions");
+        TenantContext.setManualAudit(true);
+        List<Domain> domains = appRequest.domains().stream().map(domainRequest -> {
+            Domain d = Domain.from(domainRequest);
+            d.setCreatedBy(schemaAdmin);
+            d.setUpdatedBy(schemaAdmin);
+            d.getPermissions().forEach(permission -> {
+                permission.setDomain(d);
+                permission.setCreatedBy(schemaAdmin);
+                permission.setUpdatedBy(schemaAdmin);
+            });
+            return d;
+        }).toList();
+        domainRepository.saveAll(domains);
+        log.info("Domains and related permissions inserted successfully");
+        TenantContext.clearManualAudit();
     }
 
     /**

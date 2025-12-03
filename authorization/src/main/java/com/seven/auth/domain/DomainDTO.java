@@ -1,6 +1,7 @@
 package com.seven.auth.domain;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.seven.auth.account.AccountDTO;
 import com.seven.auth.permission.PermissionDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -54,8 +55,8 @@ public class DomainDTO {
             String description,
             ZonedDateTime dateCreated,
             ZonedDateTime dateUpdated,
-            String createdBy,
-            String updatedBy
+            AccountDTO.MinRecord createdBy,
+            AccountDTO.MinRecord updatedBy
     ) {
         public static Record from(Domain d){
             return new Record(
@@ -64,8 +65,8 @@ public class DomainDTO {
                     d.getDescription(),
                     d.getDateCreated(),
                     d.getDateUpdated(),
-                    d.getCreatedBy(),
-                    d.getUpdatedBy()
+                    AccountDTO.MinRecord.from(d.getCreatedBy()),
+                    AccountDTO.MinRecord.from(d.getUpdatedBy())
             );
         }
     }

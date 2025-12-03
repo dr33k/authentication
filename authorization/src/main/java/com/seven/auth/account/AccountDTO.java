@@ -100,4 +100,19 @@ public class AccountDTO {
             );
         }
     }
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(name = "AccountMinResponse")
+    public record MinRecord(
+            String firstName,
+            String lastName,
+            String email
+    ) {
+        public static MinRecord from(Account account) {
+            return new MinRecord(
+                    account.getFirstName(),
+                    account.getLastName(),
+                    account.getEmail()
+            );
+        }
+    }
 }

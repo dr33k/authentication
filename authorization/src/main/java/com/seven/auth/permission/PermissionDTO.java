@@ -1,6 +1,7 @@
 package com.seven.auth.permission;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.seven.auth.account.AccountDTO;
 import com.seven.auth.grant.Grant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -59,8 +60,8 @@ public class PermissionDTO {
             UUID domainId,
             ZonedDateTime dateCreated,
             ZonedDateTime dateUpdated,
-            String createdBy,
-            String updatedBy
+            AccountDTO.MinRecord createdBy,
+            AccountDTO.MinRecord updatedBy
     ) {
         public static Record from(Permission p){
             return new Record(
@@ -71,8 +72,8 @@ public class PermissionDTO {
                     p.getDomain().getId(),
                     p.getDateCreated(),
                     p.getDateUpdated(),
-                    p.getCreatedBy(),
-                    p.getUpdatedBy()
+                    AccountDTO.MinRecord.from(p.getCreatedBy()),
+                    AccountDTO.MinRecord.from(p.getUpdatedBy())
             );
         }
     }

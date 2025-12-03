@@ -1,6 +1,7 @@
 package com.seven.auth.grant;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.seven.auth.account.AccountDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -37,7 +38,8 @@ public class GrantDTO {
             UUID permissionId,
             UUID roleId,
             String description,
-            ZonedDateTime dateCreated
+            ZonedDateTime dateCreated,
+            AccountDTO.MinRecord createdBy
     ) {
         public static Record from(Grant g){
             return new GrantDTO.Record(
@@ -45,7 +47,8 @@ public class GrantDTO {
                     g.getPermission().getId(),
                     g.getRole().getId(),
                     g.getDescription(),
-                    g.getDateCreated()
+                    g.getDateCreated(),
+                    AccountDTO.MinRecord.from(g.getCreatedBy())
             );
         }
     }

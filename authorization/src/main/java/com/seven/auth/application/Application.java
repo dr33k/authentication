@@ -1,9 +1,15 @@
 package com.seven.auth.application;
-import com.seven.auth.config.autdit.AuditableEntity;
+import com.seven.auth.account.Account;
+import com.seven.auth.config.audit.AuditableEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
 
+import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -24,6 +30,20 @@ public class Application extends AuditableEntity {
 
     @Column
     private String description;
+
+    @Column(name = "created_by")
+    private String createdBy;
+
+    @Column(name = "updated_by")
+    private String updatedBy;
+
+    @CreationTimestamp
+    @Column(nullable = false)
+    private ZonedDateTime dateCreated;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private ZonedDateTime dateUpdated;
 
     public Application() {
     }

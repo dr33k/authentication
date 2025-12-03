@@ -10,6 +10,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,6 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -25,13 +28,11 @@ import java.util.UUID;
 public class AccountService implements UserDetailsService, UserDetailsPasswordService {
     private final AccountRepository accountRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final AccountDTO.Record principal;
 
     public AccountService(AccountRepository accountRepository,
-                          BCryptPasswordEncoder passwordEncoder, AccountDTO.Record principal) {
+                          BCryptPasswordEncoder passwordEncoder) {
         this.accountRepository = accountRepository;
         this.bCryptPasswordEncoder = passwordEncoder;
-        this.principal = principal;
     }
 
     public Page<AccountDTO.Record> getAll(Pagination pagination, AccountDTO.Filter accountFilter) throws AuthorizationException  {
@@ -79,7 +80,11 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
 
             //Encode password
             account.setPassword(bCryptPasswordEncoder.encode(accountCreateRequest.password()));
-            account.setCreatedBy(principal.email());
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication == null ? accountCreateRequest.email(): ((AccountDTO.Record)authentication.getPrincipal()).email();
+            account.setCreatedBy(email);
+
             account = accountRepository.save(account);
             AccountDTO.Record record = AccountDTO.Record.from(account);
 

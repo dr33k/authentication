@@ -1,6 +1,7 @@
 package com.seven.auth.application;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.seven.auth.account.AccountDTO;
 import com.seven.auth.domain.DomainDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -42,8 +43,8 @@ public class ApplicationDTO {
             String description,
             ZonedDateTime dateCreated,
             ZonedDateTime dateUpdated,
-            String createdBy,
-            String updatedBy
+            AccountDTO.MinRecord createdBy,
+            AccountDTO.MinRecord updatedBy
     ){
         public String schemaName(){return name;}
 
@@ -54,8 +55,8 @@ public class ApplicationDTO {
                     app.getDescription(),
                     app.getDateCreated(),
                     app.getDateUpdated(),
-                    app.getCreatedBy(),
-                    app.getUpdatedBy()
+                    AccountDTO.MinRecord.from(app.getCreatedBy()),
+                    AccountDTO.MinRecord.from(app.getUpdatedBy())
             );
         }
     }

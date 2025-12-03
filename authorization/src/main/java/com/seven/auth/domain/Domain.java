@@ -1,5 +1,5 @@
 package com.seven.auth.domain;
-import com.seven.auth.config.autdit.AuditableEntity;
+import com.seven.auth.config.audit.AuditableEntity;
 import com.seven.auth.permission.Permission;
 import jakarta.persistence.*;
 import lombok.Data;

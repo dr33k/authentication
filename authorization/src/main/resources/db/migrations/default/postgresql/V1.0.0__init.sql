@@ -14,8 +14,8 @@ CREATE TABLE auth_account (
         dob DATE NOT NULL,
         date_created TIMESTAMP NOT NULL,
         date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        created_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE DO NOTHING ON UPDATE CASCADE,
-        updated_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE DO NOTHING ON UPDATE CASCADE
+        created_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
+        updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE
         );
 CREATE INDEX auth_account_email_idx ON auth_account(email);
 
@@ -25,8 +25,8 @@ CREATE TABLE auth_role(
     description VARCHAR(255),
     date_created TIMESTAMP NOT NULL,
     date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE DO NOTHING ON UPDATE CASCADE,
-    updated_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE DO NOTHING ON UPDATE CASCADE
+    created_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
+    updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE TABLE auth_domain(
@@ -35,8 +35,8 @@ CREATE TABLE auth_domain(
     description VARCHAR(255),
     date_created TIMESTAMP NOT NULL,
     date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE DO NOTHING ON UPDATE CASCADE,
-    updated_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE DO NOTHING ON UPDATE CASCADE
+    created_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
+    updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE
 );
 CREATE INDEX auth_domain_name_idx ON auth_domain(name);
 
@@ -45,31 +45,31 @@ CREATE TABLE auth_permission(
     name VARCHAR(100) UNIQUE NOT NULL,
     description VARCHAR(255),
     type VARCHAR(20) NOT NULL,
-    domain_id UUID NOT NULL FOREIGN KEY REFERENCES auth_domain(id) ON DELETE CASCADE,
+    domain_id UUID NOT NULL REFERENCES auth_domain(id) ON DELETE CASCADE,
     date_created TIMESTAMP NOT NULL,
     date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE DO NOTHING ON UPDATE CASCADE,
-    updated_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE DO NOTHING ON UPDATE CASCADE
+    created_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
+    updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE TABLE auth_grant(
     id UUID PRIMARY KEY,
-    role_id UUID NOT NULL FOREIGN KEY REFERENCES auth_role(id) ON DELETE CASCADE,
-    permission_id UUID NOT NULL FOREIGN KEY REFERENCES auth_permission(id) ON DELETE CASCADE,
+    role_id UUID NOT NULL REFERENCES auth_role(id) ON DELETE CASCADE,
+    permission_id UUID NOT NULL REFERENCES auth_permission(id) ON DELETE CASCADE,
     description VARCHAR(255),
     date_created TIMESTAMP NOT NULL,
     date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE DO NOTHING ON UPDATE CASCADE,
-    updated_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE DO NOTHING ON UPDATE CASCADE
+    created_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
+    updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE TABLE auth_assignment(
-    account_email VARCHAR(255) NOT NULL FOREIGN KEY(account_email) REFERENCES auth_account(email) ON DELETE CASCADE,
-    role_id UUID NOT NULL FOREIGN KEY(role_id) REFERENCES auth_role(id) ON DELETE CASCADE,
+    account_email VARCHAR(255) NOT NULL REFERENCES auth_account(email) ON DELETE CASCADE,
+    role_id UUID NOT NULL REFERENCES auth_role(id) ON DELETE CASCADE,
     date_created TIMESTAMP NOT NULL,
     date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE DO NOTHING ON UPDATE CASCADE,
-    updated_by VARCHAR(255) FOREIGN KEY REFERENCES auth_account(email) ON DELETE DO NOTHING ON UPDATE CASCADE,
+    created_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
+    updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
     PRIMARY KEY(account_email, role_id)
 );
 

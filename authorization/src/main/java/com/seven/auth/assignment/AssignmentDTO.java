@@ -1,6 +1,7 @@
 package com.seven.auth.assignment;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.seven.auth.account.AccountDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -34,13 +35,15 @@ public class AssignmentDTO {
     public record Record(
             String accountEmail,
             UUID roleId,
-            ZonedDateTime dateCreated
+            ZonedDateTime dateCreated,
+            AccountDTO.MinRecord createdBy
     ) {
         public static Record from(Assignment assignment){
             return new Record(
                     assignment.getId().getAccountEmail(),
                     assignment.getId().getRoleId(),
-                    assignment.getDateCreated()
+                    assignment.getDateCreated(),
+                    AccountDTO.MinRecord.from(assignment.getCreatedBy())
             );
         }
     }

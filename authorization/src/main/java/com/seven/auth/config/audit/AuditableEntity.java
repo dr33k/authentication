@@ -1,4 +1,4 @@
-package com.seven.auth.config.autdit;
+package com.seven.auth.config.audit;
 
 import com.seven.auth.account.Account;
 
@@ -24,12 +24,12 @@ import java.time.ZonedDateTime;
 public abstract class AuditableEntity {
     @CreatedBy
     @ManyToOne
-    @JoinColumn(name = "created_by")
+    @JoinColumn(name = "created_by", referencedColumnName = "email")
     private Account createdBy;
 
     @LastModifiedBy
     @ManyToOne
-    @JoinColumn(name = "updated_by")
+    @JoinColumn(name = "updated_by", referencedColumnName = "email")
     private Account updatedBy;
 
     @CreationTimestamp

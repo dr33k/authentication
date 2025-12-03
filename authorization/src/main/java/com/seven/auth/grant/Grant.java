@@ -1,6 +1,6 @@
 package com.seven.auth.grant;
 
-import com.seven.auth.config.autdit.AuditableEntity;
+import com.seven.auth.config.audit.AuditableEntity;
 import com.seven.auth.permission.Permission;
 import com.seven.auth.role.Role;
 import jakarta.persistence.*;

@@ -1,6 +1,7 @@
 package com.seven.auth.role;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.seven.auth.account.AccountDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -50,8 +51,8 @@ public class RoleDTO {
             String description,
             ZonedDateTime dateCreated,
             ZonedDateTime dateUpdated,
-            String createdBy,
-            String updatedBy
+            AccountDTO.MinRecord createdBy,
+            AccountDTO.MinRecord updatedBy
     ) {
         public static Record from(Role r){
             return new Record(
@@ -60,8 +61,8 @@ public class RoleDTO {
                     r.getDescription(),
                     r.getDateCreated(),
                     r.getDateUpdated(),
-                    r.getCreatedBy(),
-                    r.getUpdatedBy()
+                    AccountDTO.MinRecord.from(r.getCreatedBy()),
+                    AccountDTO.MinRecord.from(r.getUpdatedBy())
             );
         }
     }

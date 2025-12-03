@@ -9,6 +9,7 @@ public class TenantContext {
     private static final Logger log = LoggerFactory.getLogger(TenantContext.class);
     private static final ThreadLocal<String> CURRENT_TENANT = new ThreadLocal<>();
     private static final ThreadLocal<String> CURRENT_DB_VENDOR = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> MANUAL_AUDIT = new ThreadLocal<>();
 
     private TenantContext() {
     }
@@ -23,7 +24,6 @@ public class TenantContext {
     }
 
     public static void clearTenant(){CURRENT_TENANT.remove();}
-    public static void clearCurrentDbVendor(){CURRENT_DB_VENDOR.remove();}
 
     public static String getCurrentDbVendor() {
         return Optional.ofNullable(CURRENT_DB_VENDOR.get()).orElse("postgresql");
@@ -32,4 +32,18 @@ public class TenantContext {
     public static void setCurrentDbVendor(String currentDbVendor) {
         CURRENT_DB_VENDOR.set(currentDbVendor);
     }
+
+    public static void clearCurrentDbVendor(){CURRENT_DB_VENDOR.remove();}
+
+    public static boolean getManualAudit() {
+        return Optional.ofNullable(MANUAL_AUDIT.get()).orElse(false);
+    }
+
+    public static void setManualAudit(boolean manualAudit) {
+        MANUAL_AUDIT.set(manualAudit);
+    }
+    public static void clearManualAudit(){MANUAL_AUDIT.set(false);}
+
+
+
 }
