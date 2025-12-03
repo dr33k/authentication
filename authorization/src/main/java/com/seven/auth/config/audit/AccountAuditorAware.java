@@ -20,10 +20,11 @@ public class AccountAuditorAware implements AuditorAware<Account> {
 
     @Override
     public Optional<Account> getCurrentAuditor() {
-        if(!TenantContext.getManualAudit()) {
+        if(TenantContext.getAuditor() == null) { //If no auditor was manually set, let the auditor be the current authenticated principal
             AccountDTO.Record record = (AccountDTO.Record) (SecurityContextHolder.getContext().getAuthentication().getPrincipal());
             return Optional.of(Account.from(record));
+        } else{
+            return Optional.of(TenantContext.getAuditor());
         }
-        return Optional.empty();
     }
 }

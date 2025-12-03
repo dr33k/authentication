@@ -43,8 +43,8 @@ public class ApplicationDTO {
             String description,
             ZonedDateTime dateCreated,
             ZonedDateTime dateUpdated,
-            AccountDTO.MinRecord createdBy,
-            AccountDTO.MinRecord updatedBy
+            String createdBy,
+            String updatedBy
     ){
         public String schemaName(){return name;}
 
@@ -55,8 +55,8 @@ public class ApplicationDTO {
                     app.getDescription(),
                     app.getDateCreated(),
                     app.getDateUpdated(),
-                    AccountDTO.MinRecord.from(app.getCreatedBy()),
-                    AccountDTO.MinRecord.from(app.getUpdatedBy())
+                    app.getCreatedBy(),
+                    app.getUpdatedBy()
             );
         }
     }

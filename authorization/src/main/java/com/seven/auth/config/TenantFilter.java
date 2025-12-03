@@ -1,9 +1,12 @@
 package com.seven.auth.config;
 
+import com.seven.auth.account.Account;
+import com.seven.auth.account.AccountRepository;
 import com.seven.auth.application.ApplicationRepository;
 import com.seven.auth.config.threadlocal.TenantContext;
 import com.seven.auth.exception.ConflictException;
 import com.seven.auth.util.Constants;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,9 +28,11 @@ public class TenantFilter extends OncePerRequestFilter {
     //These URIs do not require a tenant id
     private final List<String> whitelist = List.of("/swagger", "/swagger-ui", "/v3/api-docs", Constants.PATH_PREFIX+"/applications");
     private final ApplicationRepository applicationRepository;
+    private final EntityManager em;
 
-    public TenantFilter(ApplicationRepository applicationRepository) {
+    public TenantFilter(ApplicationRepository applicationRepository, EntityManager em) {
         this.applicationRepository = applicationRepository;
+        this.em = em;
     }
 
     @Override
@@ -38,6 +43,7 @@ public class TenantFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } finally {
             TenantContext.clearTenant();
+            TenantContext.clearAuditor();
         }
     }
 
@@ -64,12 +70,15 @@ public class TenantFilter extends OncePerRequestFilter {
 
             //Regular paths where tenantIds are optional
             else if (Constants.AUTHORIZATION_SCHEMA.equals(tenant)) {
-                //If the path is to be accessed by a superuser then a tenantId is expected.
-                //If not, it defaults to the authorization schema
                 String tenantId = request.getHeader("X-Tenant-Id");
-                if (tenantId != null)
+                Account schemaAdmin = null;
+                if (tenantId != null) {
                     tenant = applicationRepository.findById(UUID.fromString(tenantId)).orElseThrow(() -> new ConflictException("Tenant with id %s not found".formatted(tenantId))).getSchemaName();
+                    schemaAdmin = (Account) em.createNativeQuery("SELECT * FROM \"%s\".auth_account WHERE email = '%s';".formatted(tenant, tenant+"@seven.com"), Account.class).getSingleResult();
+                    log.info("SCHEMA ADMIN: {}", schemaAdmin);
+                }
                 TenantContext.setCurrentTenant(tenant);
+                TenantContext.setAuditor(schemaAdmin);
             } else {
                 assert tenant != null : "Tenant not provided";
                 TenantContext.setCurrentTenant(tenant);

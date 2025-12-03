@@ -1,6 +1,7 @@
 package com.seven.auth.application;
 
 import com.seven.auth.account.Account;
+import com.seven.auth.account.AccountDTO;
 import com.seven.auth.account.AccountRepository;
 import com.seven.auth.config.threadlocal.TenantContext;
 import com.seven.auth.domain.Domain;
@@ -15,6 +16,7 @@ import org.flywaydb.core.api.configuration.ClassicConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.auditing.AuditingHandler;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -110,6 +112,9 @@ public class TenantService {
 
             //Insert application record
             Application application = Application.from(appRequest);
+            AccountDTO.Record principal = (AccountDTO.Record) (SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+            application.setCreatedBy(principal.email());
+            application.setUpdatedBy(principal.email());
             applicationRepository.save(application);
 
             log.info("Provisioned new schema: {}", appRequest.name());
@@ -119,6 +124,7 @@ public class TenantService {
             throw new ConflictException(String.format("Error provisioning schema. Message: %s", e.getMessage()));
         } finally {
             em.createNativeQuery("SET SCHEMA '%s'".formatted(Constants.PUBLIC_SCHEMA)).executeUpdate();
+            TenantContext.clearAuditor();
         }
     }
 
@@ -128,6 +134,8 @@ public class TenantService {
         String adminPassword = UUID.randomUUID().toString();
         Account admin = accountRepository.findByEmail(adminEmail).orElseThrow(() -> new ConflictException("Elevated user not found please contact administrator"));
         admin.setPassword(bCryptPasswordEncoder.encode(adminPassword));
+
+        TenantContext.setAuditor(admin);
         admin = accountRepository.save(admin);
 
         //Create credentials file
@@ -140,12 +148,14 @@ public class TenantService {
             fos.write("Username:%s\nPassword:%s".formatted(adminEmail, adminPassword).getBytes(StandardCharsets.UTF_8));
         }
         log.info("Credentials file: {}", credentialsFilePath.toAbsolutePath());
+
+        TenantContext.clearAuditor();
         return admin;
     }
 
     private void insertDomainsAndPermissions(ApplicationDTO.Create appRequest, Account schemaAdmin) {
         log.info("Inserting Domains and related permissions");
-        TenantContext.setManualAudit(true);
+        TenantContext.setAuditor(schemaAdmin);
         List<Domain> domains = appRequest.domains().stream().map(domainRequest -> {
             Domain d = Domain.from(domainRequest);
             d.setCreatedBy(schemaAdmin);
@@ -159,7 +169,7 @@ public class TenantService {
         }).toList();
         domainRepository.saveAll(domains);
         log.info("Domains and related permissions inserted successfully");
-        TenantContext.clearManualAudit();
+        TenantContext.clearAuditor();
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.seven.auth.config.threadlocal;
 
+import com.seven.auth.account.Account;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,7 +10,7 @@ public class TenantContext {
     private static final Logger log = LoggerFactory.getLogger(TenantContext.class);
     private static final ThreadLocal<String> CURRENT_TENANT = new ThreadLocal<>();
     private static final ThreadLocal<String> CURRENT_DB_VENDOR = new ThreadLocal<>();
-    private static final ThreadLocal<Boolean> MANUAL_AUDIT = new ThreadLocal<>();
+    private static final ThreadLocal<Account> AUDITOR = new ThreadLocal<>();
 
     private TenantContext() {
     }
@@ -35,14 +36,14 @@ public class TenantContext {
 
     public static void clearCurrentDbVendor(){CURRENT_DB_VENDOR.remove();}
 
-    public static boolean getManualAudit() {
-        return Optional.ofNullable(MANUAL_AUDIT.get()).orElse(false);
+    public static Account getAuditor() {
+        return AUDITOR.get();
     }
 
-    public static void setManualAudit(boolean manualAudit) {
-        MANUAL_AUDIT.set(manualAudit);
+    public static void setAuditor(Account auditor) {
+        AUDITOR.set(auditor);
     }
-    public static void clearManualAudit(){MANUAL_AUDIT.set(false);}
+    public static void clearAuditor(){AUDITOR.remove();}
 
 
 

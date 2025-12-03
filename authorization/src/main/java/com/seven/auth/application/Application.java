@@ -17,7 +17,7 @@ import java.util.UUID;
 @Table(name = "auth_application")
 @Data
 @ToString
-public class Application extends AuditableEntity {
+public class Application{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
