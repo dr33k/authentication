@@ -1,11 +1,8 @@
-package com.seven.auth.config;
+package com.seven.auth.config.autdit;
 
 import com.seven.auth.account.Account;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -17,13 +14,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.ZonedDateTime;
 
 /**
- * Base class to hold common auditing fields (createdBy, updatedBy).
+ * Base class to hold common auditing fields (createdBy, updatedBy, dateCreated, dateUpdated).
  * Entities extending this class will automatically populate these fields
  * using Spring Data JPA Auditing.
  */
 @Data
 @MappedSuperclass
-@jakarta.persistence.EntityListeners(AuditingEntityListener.class)
+@EntityListeners(AuditingEntityListener.class)
 public abstract class AuditableEntity {
     @CreatedBy
     @ManyToOne

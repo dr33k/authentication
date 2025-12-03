@@ -1,11 +1,9 @@
 package com.seven.auth.role;
+import com.seven.auth.config.autdit.AuditableEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -13,7 +11,7 @@ import java.util.UUID;
 @Table(name = "auth_role")
 @Data
 @ToString
-public class Role {
+public class Role extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -23,20 +21,6 @@ public class Role {
 
     @Column
     private String description;
-
-    @CreationTimestamp
-    @Column(nullable = false)
-    private ZonedDateTime dateCreated;
-
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private ZonedDateTime dateUpdated;
-
-    @Column
-    private String createdBy = "SYSTEM";
-
-    @Column
-    private String updatedBy = "SYSTEM";
 
     public Role() {
     }

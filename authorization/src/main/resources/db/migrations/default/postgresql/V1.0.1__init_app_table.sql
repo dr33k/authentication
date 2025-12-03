@@ -7,8 +7,8 @@ CREATE TABLE auth_application (
         schema_name VARCHAR(255) NOT NULL,
         date_created TIMESTAMP NOT NULL,
         date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        created_by VARCHAR(255) FOREIGN KEY REFERENCES "authorization".auth_account(email) ON DELETE CASCADE ON UPDATE CASCADE,
-        updated_by VARCHAR(255) FOREIGN KEY REFERENCES "authorization".auth_account(email) ON DELETE CASCADE ON UPDATE CASCADE,
+        created_by VARCHAR(255) FOREIGN KEY REFERENCES "authorization".auth_account(email) ON DELETE DO NOTHING ON UPDATE CASCADE,
+        updated_by VARCHAR(255) FOREIGN KEY REFERENCES "authorization".auth_account(email) ON DELETE DO NOTHING ON UPDATE CASCADE,
         UNIQUE(name)
 );
 

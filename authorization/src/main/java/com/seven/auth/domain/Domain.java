@@ -1,12 +1,10 @@
 package com.seven.auth.domain;
+import com.seven.auth.config.autdit.AuditableEntity;
 import com.seven.auth.permission.Permission;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -15,7 +13,7 @@ import java.util.UUID;
 @Table(name = "auth_domain")
 @Data
 @ToString
-public class Domain {
+public class Domain extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -28,20 +26,6 @@ public class Domain {
 
     @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Permission> permissions;
-
-    @CreationTimestamp
-    @Column(nullable = false)
-    private ZonedDateTime dateCreated;
-
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private ZonedDateTime dateUpdated;
-
-    @Column
-    private String createdBy = "SYSTEM";
-
-    @Column
-    private String updatedBy = "SYSTEM";
 
     public Domain() {
     }

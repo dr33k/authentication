@@ -1,12 +1,10 @@
 package com.seven.auth.assignment;
+import com.seven.auth.config.autdit.AuditableEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -14,13 +12,9 @@ import java.util.UUID;
 @Table(name = "auth_assignment")
 @Data
 @ToString
-public class Assignment {
+public class Assignment extends AuditableEntity {
     @EmbeddedId
     private Id id;
-
-    @CreationTimestamp
-    @Column(nullable = false)
-    private ZonedDateTime dateCreated;
 
     public Assignment() {
     }

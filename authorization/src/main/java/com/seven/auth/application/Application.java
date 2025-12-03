@@ -1,12 +1,9 @@
 package com.seven.auth.application;
-import com.seven.auth.config.AuditableEntity;
+import com.seven.auth.config.autdit.AuditableEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 

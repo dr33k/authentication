@@ -1,20 +1,17 @@
 package com.seven.auth.permission;
+import com.seven.auth.config.autdit.AuditableEntity;
 import com.seven.auth.domain.Domain;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.ToString;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 
-import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
 @Entity
 @Table(name = "auth_permission")
 @Data
-public class Permission implements GrantedAuthority {
+public class Permission extends AuditableEntity implements GrantedAuthority {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -32,20 +29,6 @@ public class Permission implements GrantedAuthority {
     @JoinColumn(name = "domain_id", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     private Domain domain;
-
-    @CreationTimestamp
-    @Column(nullable = false)
-    private ZonedDateTime dateCreated;
-
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private ZonedDateTime dateUpdated;
-
-    @Column
-    private String createdBy = "SYSTEM";
-
-    @Column
-    private String updatedBy = "SYSTEM";
 
     public Permission() {
     }

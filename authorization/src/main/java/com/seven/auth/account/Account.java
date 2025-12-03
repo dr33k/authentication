@@ -129,6 +129,16 @@ public class Account implements Serializable, UserDetails {
         account.setPassword(req.password());
         return account;
     }
+    public static Account from(AccountDTO.Record rec){
+        Account account = new Account();
+        account.setId(rec.id());
+        account.setFirstName(rec.firstName());
+        account.setLastName(rec.lastName());
+        account.setEmail(rec.email());
+        account.setDob(rec.dob());
+        account.setPhoneNo(rec.phoneNo());
+        return account;
+    }
 
     public static void update(Account account, AccountDTO.Update req){
         account.setFirstName(req.firstName());

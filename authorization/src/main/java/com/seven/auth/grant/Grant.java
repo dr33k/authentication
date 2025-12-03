@@ -1,13 +1,12 @@
 package com.seven.auth.grant;
 
+import com.seven.auth.config.autdit.AuditableEntity;
 import com.seven.auth.permission.Permission;
 import com.seven.auth.role.Role;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
-import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -15,7 +14,7 @@ import java.util.UUID;
 @Table(name = "auth_grant")
 @Data
 @ToString
-public class Grant {
+public class Grant extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -30,13 +29,6 @@ public class Grant {
 
     @Column
     private String description;
-
-    @CreationTimestamp
-    @Column(nullable = false)
-    private ZonedDateTime dateCreated;
-
-    @Column(nullable = false)
-    private String createdBy = "SYSTEM";
 
     public Grant() {
     }
