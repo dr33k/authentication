@@ -1,10 +1,15 @@
 package com.seven.auth.account;
 
+import com.seven.auth.application.Application;
+import com.seven.auth.application.ApplicationRepository;
+import com.seven.auth.config.threadlocal.TenantContext;
 import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.exception.ClientException;
 import com.seven.auth.exception.ConflictException;
 import com.seven.auth.exception.NotFoundException;
+import com.seven.auth.util.Constants;
 import com.seven.auth.util.Pagination;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,19 +25,26 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class AccountService implements UserDetailsService, UserDetailsPasswordService {
     private final AccountRepository accountRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final EntityManager em;
+    private final ApplicationRepository applicationRepository;
 
     public AccountService(AccountRepository accountRepository,
-                          BCryptPasswordEncoder passwordEncoder) {
+                          BCryptPasswordEncoder passwordEncoder, EntityManager em, ApplicationRepository applicationRepository) {
         this.accountRepository = accountRepository;
         this.bCryptPasswordEncoder = passwordEncoder;
+        this.em = em;
+        this.applicationRepository = applicationRepository;
     }
 
     public Page<AccountDTO.Record> getAll(Pagination pagination, AccountDTO.Filter accountFilter) throws AuthorizationException  {
@@ -72,7 +84,7 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
     @Transactional
     public AccountDTO.Record create(AccountDTO.Create accountCreateRequest) throws AuthorizationException {
         try {
-            log.info("Creating account: {}", accountCreateRequest.email());
+            log.info("Creating account: {} in schema: {}", accountCreateRequest.email(), TenantContext.getCurrentTenant());
             if (accountRepository.existsByEmail(accountCreateRequest.email()))
                 throw new ConflictException("An account with this email already exists");
 
@@ -84,11 +96,12 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication == null ? accountCreateRequest.email(): ((AccountDTO.Record)authentication.getPrincipal()).email();
             account.setCreatedBy(email);
+            account.setUpdatedBy(email);
 
             account = accountRepository.save(account);
             AccountDTO.Record record = AccountDTO.Record.from(account);
 
-            log.info("Account {} successfully created", account.getId());
+            log.info("Account {} successfully created ins schema: {}", account.getId(), TenantContext.getCurrentTenant());
             return record;
         } catch (AuthorizationException e) {
             log.error("Unable to create account: {}. Message: {}", accountCreateRequest.email(), e.getMessage());
@@ -96,6 +109,45 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
         } catch (Exception e) {
             log.error("Unable to create account: {}. Message: ", accountCreateRequest.email(), e);
             throw new ConflictException(e.getMessage());
+        }
+    }
+
+    @Transactional
+    public AccountDTO.Record createSuper(AccountDTO.Create accountCreateRequest) throws AuthorizationException {
+        try {
+            log.info("Creating Superuser: {} in schema: {}", accountCreateRequest.email(), TenantContext.getCurrentTenant());
+            //Persist in public schema
+            AccountDTO.Record accountRecord = create(accountCreateRequest);
+
+            //Get authenticated principal email
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String principalEmail = authentication == null ? accountCreateRequest.email(): ((AccountDTO.Record)authentication.getPrincipal()).email();
+
+            //Get all registered schemas/tenants
+            Set<String> tenants = applicationRepository.findAll().stream().map(Application::getSchemaName).collect(Collectors.toSet());
+            tenants.remove(Constants.PUBLIC_SCHEMA);
+
+            Account account = Account.from(accountCreateRequest);
+            for(String tenant: tenants){
+                em.createNativeQuery("SET SCHEMA '%s';".formatted(tenant)).executeUpdate();
+                if(!accountRepository.existsByEmail(accountCreateRequest.email())){
+                    //These accounts are not meant for login functionality, they are shadow accounts
+                    //BCrypt is always used for logins and no encoded digest can ever return a single underscore '_'
+                    account.setPassword("_");
+                    account.setCreatedBy(principalEmail);
+                    account.setUpdatedBy(principalEmail);
+
+                    account = accountRepository.save(account);
+                }
+            }
+
+            log.info("Tenant schemas populated with new superuser: {}", accountCreateRequest.email());
+            return accountRecord;
+        } catch (Exception e) {
+            log.error("Unable to create accounts. Message: ", e);
+            throw new ConflictException(e.getMessage());
+        } finally {
+            em.createNativeQuery("SET SCHEMA '%s';".formatted(Constants.PUBLIC_SCHEMA)).executeUpdate();
         }
     }
 

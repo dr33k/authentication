@@ -112,10 +112,7 @@ public class TenantService {
 
             //Insert application record
             Application application = Application.from(appRequest);
-            AccountDTO.Record principal = (AccountDTO.Record) (SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-            application.setCreatedBy(principal.email());
-            application.setUpdatedBy(principal.email());
-            applicationRepository.save(application);
+            application = applicationRepository.save(application);
 
             log.info("Provisioned new schema: {}", appRequest.name());
             return application;
@@ -124,7 +121,6 @@ public class TenantService {
             throw new ConflictException(String.format("Error provisioning schema. Message: %s", e.getMessage()));
         } finally {
             em.createNativeQuery("SET SCHEMA '%s'".formatted(Constants.PUBLIC_SCHEMA)).executeUpdate();
-            TenantContext.clearAuditor();
         }
     }
 
@@ -132,10 +128,10 @@ public class TenantService {
         log.info("Setting Admin credentials");
         String adminEmail = appRequest.schemaName() + "@seven.com";
         String adminPassword = UUID.randomUUID().toString();
+
         Account admin = accountRepository.findByEmail(adminEmail).orElseThrow(() -> new ConflictException("Elevated user not found please contact administrator"));
         admin.setPassword(bCryptPasswordEncoder.encode(adminPassword));
 
-        TenantContext.setAuditor(admin);
         admin = accountRepository.save(admin);
 
         //Create credentials file
@@ -148,28 +144,18 @@ public class TenantService {
             fos.write("Username:%s\nPassword:%s".formatted(adminEmail, adminPassword).getBytes(StandardCharsets.UTF_8));
         }
         log.info("Credentials file: {}", credentialsFilePath.toAbsolutePath());
-
-        TenantContext.clearAuditor();
         return admin;
     }
 
     private void insertDomainsAndPermissions(ApplicationDTO.Create appRequest, Account schemaAdmin) {
         log.info("Inserting Domains and related permissions");
-        TenantContext.setAuditor(schemaAdmin);
         List<Domain> domains = appRequest.domains().stream().map(domainRequest -> {
             Domain d = Domain.from(domainRequest);
-            d.setCreatedBy(schemaAdmin);
-            d.setUpdatedBy(schemaAdmin);
-            d.getPermissions().forEach(permission -> {
-                permission.setDomain(d);
-                permission.setCreatedBy(schemaAdmin);
-                permission.setUpdatedBy(schemaAdmin);
-            });
+            d.getPermissions().forEach(permission -> permission.setDomain(d));
             return d;
         }).toList();
         domainRepository.saveAll(domains);
         log.info("Domains and related permissions inserted successfully");
-        TenantContext.clearAuditor();
     }
 
     /**
@@ -209,7 +195,7 @@ public class TenantService {
         flywayConfig.setDataSource(dataSource);
         flywayConfig.setSchemas(new String[]{schemaName});
         flywayConfig.setValidateOnMigrate(true);
-        flywayConfig.setLocations(new Location(String.format(Constants.TENANT_MIGRATION_SCRIPTTS_PATH, dbVendor)));
+        flywayConfig.setLocations(new Location(String.format(Constants.TENANT_MIGRATION_SCRIPTS_PATH, dbVendor)));
         flywayConfig.setCleanDisabled(false);
         log.info("Instantiated flyway for Schema: {} in DB", schemaName);
         return new Flyway(flywayConfig);

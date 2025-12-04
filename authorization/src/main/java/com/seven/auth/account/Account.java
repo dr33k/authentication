@@ -50,6 +50,9 @@ public class Account implements Serializable, UserDetails {
     @Column(nullable = false)
     private LocalDate dob;
 
+    @Column(nullable = false)
+    private Boolean isDeleted = false;
+
     @CreationTimestamp
     @Column(nullable = false)
     private ZonedDateTime dateCreated;
@@ -59,10 +62,10 @@ public class Account implements Serializable, UserDetails {
     private ZonedDateTime dateUpdated;
 
     @Column
-    private String createdBy = "root@seven.com";
+    private String createdBy;
 
     @Column
-    private String updatedBy = "root@seven.com";
+    private String updatedBy;
     public enum AccountStatus{ACTIVE, INACTIVE}
 
     public Account() {

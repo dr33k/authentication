@@ -17,7 +17,7 @@ import java.util.UUID;
 @Table(name = "auth_application")
 @Data
 @ToString
-public class Application{
+public class Application extends AuditableEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -30,20 +30,6 @@ public class Application{
 
     @Column
     private String description;
-
-    @Column(name = "created_by")
-    private String createdBy;
-
-    @Column(name = "updated_by")
-    private String updatedBy;
-
-    @CreationTimestamp
-    @Column(nullable = false)
-    private ZonedDateTime dateCreated;
-
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private ZonedDateTime dateUpdated;
 
     public Application() {
     }

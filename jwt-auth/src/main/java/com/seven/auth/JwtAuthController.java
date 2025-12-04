@@ -11,8 +11,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
-
 import static com.seven.auth.util.response.Responder.created;
 import static com.seven.auth.util.response.Responder.ok;
 
@@ -29,7 +27,7 @@ public class JwtAuthController {
     @PostMapping(value = "/register", produces = "application/json", consumes = "application/json")
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER, required = true)
     public ResponseEntity<Response> createResource(@Valid @RequestBody AccountDTO.Create request) throws AuthorizationException {
-            AuthDTO userDTO = jwtService.register(request);
+            AuthDTO userDTO = jwtService.provisionSuper(request);
             return created(userDTO.data, userDTO.token, "/domains" );
     }
 

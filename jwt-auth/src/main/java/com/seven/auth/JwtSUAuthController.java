@@ -1,9 +1,8 @@
 package com.seven.auth;
 
+import com.seven.auth.account.AccountDTO;
 import com.seven.auth.account.AuthDTO;
-import com.seven.auth.config.threadlocal.TenantContext;
 import com.seven.auth.exception.AuthorizationException;
-import com.seven.auth.util.Constants;
 import com.seven.auth.util.response.Response;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
@@ -19,7 +18,6 @@ import static com.seven.auth.util.response.Responder.ok;
 
 @RestController
 @RequestMapping("su/auth")
-@SecurityRequirements
 public class JwtSUAuthController {
     private final JwtService jwtService;
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
@@ -28,9 +26,16 @@ public class JwtSUAuthController {
         this.jwtService = jwtService;
     }
 
+    @SecurityRequirements
     @PostMapping(value = "/login", produces = "application/json", consumes = "application/json")
     public ResponseEntity<Response> login(@Valid @RequestBody JwtLoginRequest request) throws AuthorizationException {
         AuthDTO userDTO = jwtService.login(request);
+        return ok(userDTO.data, userDTO.token);
+    }
+
+    @PostMapping(value = "/provision", produces = "application/json", consumes = "application/json")
+    public ResponseEntity<Response> provisionSuper(@Valid @RequestBody AccountDTO.Create request) throws AuthorizationException {
+        AuthDTO userDTO = jwtService.provisionSuper(request);
         return ok(userDTO.data, userDTO.token);
     }
 }

@@ -84,7 +84,7 @@ public class JwtService {
         return claims.getExpiration().before(new Date());
     }
 
-    public AuthDTO register(AccountDTO.Create request) throws AuthorizationException {
+    public AuthDTO provisionSuper(AccountDTO.Create request) throws AuthorizationException {
         try {
             AccountDTO.Record accountRecord = accountService.create(request);
             List<PermissionDTO.Record> permissionRecords = permissionRepository.findAllByAccount(accountRecord.email()).stream().map(PermissionDTO.Record::from).toList();
@@ -100,6 +100,26 @@ public class JwtService {
             throw e;
         } catch (Exception e) {
             log.error("Unable to register account {}. Message: ", request.email(), e);
+            throw new ClientException(e.getMessage());
+        }
+    }
+
+    public AuthDTO registerSuper(AccountDTO.Create request) throws AuthorizationException {
+        try {
+            AccountDTO.Record accountRecord = accountService.createSuper(request);
+            List<PermissionDTO.Record> permissionRecords = permissionRepository.findAllByAccount(accountRecord.email()).stream().map(PermissionDTO.Record::from).toList();
+
+            String token = generateToken(accountRecord.email(),
+                    Map.of("permissions", permissionRecords,
+                            "principal", accountRecord,
+                            "tenant", TenantContext.getCurrentTenant())
+            );
+            return AuthDTO.builder().data(accountRecord).token(token).build();
+        } catch (AuthorizationException e) {
+            log.error("ResponseStatusException; Unable to register superuser {}. Message: ", request.email(), e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Unable to register superuser {}. Message: ", request.email(), e);
             throw new ClientException(e.getMessage());
         }
     }

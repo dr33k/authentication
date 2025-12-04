@@ -10,7 +10,6 @@ public class TenantContext {
     private static final Logger log = LoggerFactory.getLogger(TenantContext.class);
     private static final ThreadLocal<String> CURRENT_TENANT = new ThreadLocal<>();
     private static final ThreadLocal<String> CURRENT_DB_VENDOR = new ThreadLocal<>();
-    private static final ThreadLocal<Account> AUDITOR = new ThreadLocal<>();
 
     private TenantContext() {
     }
@@ -35,16 +34,4 @@ public class TenantContext {
     }
 
     public static void clearCurrentDbVendor(){CURRENT_DB_VENDOR.remove();}
-
-    public static Account getAuditor() {
-        return AUDITOR.get();
-    }
-
-    public static void setAuditor(Account auditor) {
-        AUDITOR.set(auditor);
-    }
-    public static void clearAuditor(){AUDITOR.remove();}
-
-
-
 }

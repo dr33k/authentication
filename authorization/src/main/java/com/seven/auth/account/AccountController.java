@@ -42,7 +42,7 @@ public class AccountController {
     }
 
     @PostMapping
-    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER)
+    @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER, required = true)
     @Authorize(permissions = {PEnum.create_account, PEnum.super_create})
     public ResponseEntity <Response> createResource(@Valid @RequestBody AccountDTO.Create create) throws AuthorizationException {
         AccountDTO.Record record = accountService.create(create);

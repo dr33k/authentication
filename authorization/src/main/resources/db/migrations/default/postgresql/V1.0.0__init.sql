@@ -1,4 +1,4 @@
-SET SCHEMA 'authorization';
+SET SCHEMA 'public';
 
 CREATE TABLE auth_account (
         id UUID PRIMARY KEY,
@@ -15,7 +15,9 @@ CREATE TABLE auth_account (
         date_created TIMESTAMP NOT NULL,
         date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         created_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
-        updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE
+        updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
+        is_deleted BOOL NOT NULL,
+        date_deleted TIMESTAMP
         );
 CREATE INDEX auth_account_email_idx ON auth_account(email);
 
@@ -73,6 +75,18 @@ CREATE TABLE auth_assignment(
     PRIMARY KEY(account_email, role_id)
 );
 
+CREATE TABLE auth_application (
+        id UUID PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description VARCHAR(255) NOT NULL,
+        schema_name VARCHAR(255) NOT NULL,
+        date_created TIMESTAMP NOT NULL,
+        date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(255) NOT NULL,
+        updated_by VARCHAR(255) NOT NULL,
+        UNIQUE(name)
+);
+
 DO $$
 DECLARE
     root_account_id UUID;
@@ -93,12 +107,12 @@ BEGIN
     super_read_id = gen_random_uuid();
     super_delete_id = gen_random_uuid();
 
--- Create System user and Superuser
-INSERT INTO auth_account(id, first_name, last_name, dob, email, phone_no, status, date_created, date_updated, created_by, updated_by, password)
-VALUES (root_account_id, 'superuser', '', '1950-01-01', root_account_email, '+2349999999990', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email, '$2a$12$7BtwA4ZTgyVGM2F7SiCZaeAsM4VD1eP52zrSEdkaP3S60IxCgaXIC');
+-- Create Superuser
+INSERT INTO auth_account(id, first_name, last_name, dob, email, phone_no, status, date_created, date_updated, created_by, updated_by, password, is_deleted)
+VALUES (root_account_id, 'super', '', '1950-01-01', root_account_email, '+00000000000', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email, '$2a$12$7BtwA4ZTgyVGM2F7SiCZaeAsM4VD1eP52zrSEdkaP3S60IxCgaXIC', false);
 
 INSERT INTO auth_role(id, name, description, date_created, date_updated, created_by, updated_by)
-VALUES(root_role_id, 'SUPERUSER', 'Superuser administrator role', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email);
+VALUES(root_role_id, 'ROOT', 'Superuser administrator role', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email);
 
 INSERT INTO auth_assignment(account_email, role_id, date_created, date_updated, created_by, updated_by)
 VALUES(root_account_email, root_role_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email);
@@ -155,5 +169,9 @@ VALUES
 (gen_random_uuid(), 'read_grant', 'Grants holder permission to read grants', 'READ', authorization_domain_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email),
 (gen_random_uuid(), 'delete_grant', 'Grants holder permission to delete grants', 'DELETE', authorization_domain_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email)
 ;
+
+INSERT INTO auth_application(id, name, description, schema_name, date_created, date_updated, created_by, updated_by)
+VALUES (gen_random_uuid(), 'authorization', 'Default authorization application', 'public', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'root@seven.com', 'root@seven.com');
+
 END
 $$;

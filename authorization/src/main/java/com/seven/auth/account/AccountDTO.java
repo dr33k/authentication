@@ -105,13 +105,15 @@ public class AccountDTO {
     public record MinRecord(
             String firstName,
             String lastName,
-            String email
+            String email,
+            Boolean isDeleted
     ) {
         public static MinRecord from(Account account) {
             return new MinRecord(
                     account.getFirstName(),
                     account.getLastName(),
-                    account.getEmail()
+                    account.getEmail(),
+                    account.getIsDeleted()
             );
         }
     }

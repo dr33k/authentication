@@ -13,7 +13,9 @@ CREATE TABLE auth_account (
         date_created TIMESTAMP NOT NULL,
         date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         created_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
-        updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE
+        updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
+        is_deleted BOOL NOT NULL,
+        date_deleted TIMESTAMP
         );
 CREATE INDEX auth_account_email_idx ON auth_account(email);
 
@@ -74,6 +76,7 @@ CREATE TABLE auth_assignment(
 DO $$
 DECLARE
     admin_account_id UUID;
+    root_account_email VARCHAR(255);
     admin_account_email VARCHAR(255);
     admin_role_id UUID;
     global_domain_id UUID;
@@ -83,6 +86,7 @@ DECLARE
     elev_delete_id UUID;
 BEGIN
     admin_account_id := gen_random_uuid();
+    root_account_email := 'root@seven.com';
     admin_account_email := current_schema||'@seven.com';
     admin_role_id := gen_random_uuid();
     global_domain_id := gen_random_uuid();
@@ -91,9 +95,11 @@ BEGIN
     elev_read_id = gen_random_uuid();
     elev_delete_id = gen_random_uuid();
 
--- Create an elevated user
-INSERT INTO auth_account(id, first_name, last_name, dob, email, phone_no, status, date_created, date_updated, created_by, updated_by, password)
-VALUES(admin_account_id, 'admin', '', '1950-01-01', admin_account_email, '+2349999999990', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, admin_account_email, admin_account_email, '$2a$12$7BtwA4ZTgyVGM2F7SiCZaeAsM4VD1eP52zrSEdkaP3S60IxCgaXIC');
+-- Create an elevated user and a root user alias
+INSERT INTO auth_account(id, first_name, last_name, dob, email, phone_no, status, date_created, date_updated, created_by, updated_by, password, is_deleted)
+VALUES
+(gen_random_uuid(), 'super', '', '1950-01-01', root_account_email, '+00000000000', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email, '_', false),
+(admin_account_id, 'admin', '', '1950-01-01', admin_account_email, '+00000000000', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, admin_account_email, admin_account_email, '$2a$12$7BtwA4ZTgyVGM2F7SiCZaeAsM4VD1eP52zrSEdkaP3S60IxCgaXIC', false);
 
 INSERT INTO auth_role(id, name, description, date_created, date_updated, created_by, updated_by)
 VALUES(admin_role_id, 'ADMIN', 'Administrator role', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, admin_account_email, admin_account_email);

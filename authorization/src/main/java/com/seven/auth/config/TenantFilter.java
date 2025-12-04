@@ -1,12 +1,9 @@
 package com.seven.auth.config;
 
-import com.seven.auth.account.Account;
-import com.seven.auth.account.AccountRepository;
 import com.seven.auth.application.ApplicationRepository;
 import com.seven.auth.config.threadlocal.TenantContext;
 import com.seven.auth.exception.ConflictException;
 import com.seven.auth.util.Constants;
-import jakarta.persistence.EntityManager;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,13 +23,11 @@ import java.util.UUID;
 public class TenantFilter extends OncePerRequestFilter {
     private final Logger log = LoggerFactory.getLogger(getClass());
     //These URIs do not require a tenant id
-    private final List<String> whitelist = List.of("/swagger", "/swagger-ui", "/v3/api-docs", Constants.PATH_PREFIX+"/applications");
+    private final List<String> whitelist = List.of("/swagger", "/swagger-ui", "/v3/api-docs", Constants.PATH_PREFIX + "/applications");
     private final ApplicationRepository applicationRepository;
-    private final EntityManager em;
 
-    public TenantFilter(ApplicationRepository applicationRepository, EntityManager em) {
+    public TenantFilter(ApplicationRepository applicationRepository) {
         this.applicationRepository = applicationRepository;
-        this.em = em;
     }
 
     @Override
@@ -43,7 +38,6 @@ public class TenantFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } finally {
             TenantContext.clearTenant();
-            TenantContext.clearAuditor();
         }
     }
 
@@ -57,10 +51,10 @@ public class TenantFilter extends OncePerRequestFilter {
             }
 
             //Authentication paths
-            else if (path.startsWith("/su/auth/")) {
+            else if (isSuperuserAuthenticationPath(path)) {
                 log.info("Superuser authentication path");
-                TenantContext.setCurrentTenant(Constants.AUTHORIZATION_SCHEMA);
-            } else if (path.startsWith("/auth/")) {
+                TenantContext.setCurrentTenant(Constants.PUBLIC_SCHEMA);
+            } else if (isRegularAuthenticationPath(path)) {
                 log.info("Authentication path");
                 String tenantId = request.getHeader("X-Tenant-Id");
                 assert tenantId != null : "Tenant not provided";
@@ -68,18 +62,24 @@ public class TenantFilter extends OncePerRequestFilter {
                 TenantContext.setCurrentTenant(tenant);
             }
 
-            //Regular paths where tenantIds are optional
-            else if (Constants.AUTHORIZATION_SCHEMA.equals(tenant)) {
+            //Requests performed by superusers
+            else if (currentPrincipalIsSuperUser(tenant)) {
                 String tenantId = request.getHeader("X-Tenant-Id");
-                Account schemaAdmin = null;
-                if (tenantId != null) {
+                if (isRequestToCreateRegularAccount(request, path)) { //
+                    assert tenantId != null : "Tenant not provided";
                     tenant = applicationRepository.findById(UUID.fromString(tenantId)).orElseThrow(() -> new ConflictException("Tenant with id %s not found".formatted(tenantId))).getSchemaName();
-                    schemaAdmin = (Account) em.createNativeQuery("SELECT * FROM \"%s\".auth_account WHERE email = '%s';".formatted(tenant, tenant+"@seven.com"), Account.class).getSingleResult();
-                    log.info("SCHEMA ADMIN: {}", schemaAdmin);
                 }
+
+                //If it is any other type of request performed by superusers
+                else if (tenantId != null) {
+                    tenant = applicationRepository.findById(UUID.fromString(tenantId)).orElseThrow(() -> new ConflictException("Tenant with id %s not found".formatted(tenantId))).getSchemaName();
+                }
+
                 TenantContext.setCurrentTenant(tenant);
-                TenantContext.setAuditor(schemaAdmin);
-            } else {
+            }
+
+            //Requests performed by other users
+            else {
                 assert tenant != null : "Tenant not provided";
                 TenantContext.setCurrentTenant(tenant);
             }
@@ -89,6 +89,22 @@ public class TenantFilter extends OncePerRequestFilter {
             log.error(msg);
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, msg);
         }
+    }
+
+    private static boolean isRequestToCreateRegularAccount(HttpServletRequest request, String path) {
+        return "post".equals(request.getMethod().toLowerCase()) && path.startsWith(Constants.PATH_PREFIX + "/accounts");
+    }
+
+    private static boolean currentPrincipalIsSuperUser(String tenant) {
+        return Constants.PUBLIC_SCHEMA.equals(tenant);
+    }
+
+    private static boolean isRegularAuthenticationPath(String path) {
+        return path.startsWith("/auth/");
+    }
+
+    private static boolean isSuperuserAuthenticationPath(String path) {
+        return path.startsWith("/su/auth/");
     }
 
     private boolean isPathWhitelisted(String path) {
