@@ -31,14 +31,8 @@ public class Account implements Serializable, UserDetails {
     @Column(nullable = false)
     private String phoneNo;
 
-    @Column
-    private String phoneNoAlt;
-
     @Column(nullable = false,unique = true)
     private String email;
-
-    @Column(unique = true)
-    private String emailAlt;
 
     @Column(nullable = false)
     private String password;

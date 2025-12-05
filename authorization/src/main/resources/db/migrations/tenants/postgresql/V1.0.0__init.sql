@@ -10,12 +10,12 @@ CREATE TABLE auth_account (
         status VARCHAR(20) NOT NULL,
         password VARCHAR(512) NOT NULL,
         dob DATE NOT NULL,
-        date_created TIMESTAMP NOT NULL,
-        date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        date_created TIMESTAMP WITH TIME ZONE NOT NULL,
+        date_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         created_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
         updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
         is_deleted BOOL NOT NULL,
-        date_deleted TIMESTAMP
+        date_deleted TIMESTAMP WITH TIME ZONE
         );
 CREATE INDEX auth_account_email_idx ON auth_account(email);
 
@@ -23,8 +23,8 @@ CREATE TABLE auth_role(
     id UUID PRIMARY KEY,
     name VARCHAR(100) UNIQUE NOT NULL,
     description VARCHAR(255),
-    date_created TIMESTAMP NOT NULL,
-    date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    date_created TIMESTAMP WITH TIME ZONE NOT NULL,
+    date_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
     updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -33,8 +33,8 @@ CREATE TABLE auth_domain(
     id UUID PRIMARY KEY,
     name VARCHAR(100) UNIQUE NOT NULL,
     description VARCHAR(255),
-    date_created TIMESTAMP NOT NULL,
-    date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    date_created TIMESTAMP WITH TIME ZONE NOT NULL,
+    date_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
     updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -46,8 +46,8 @@ CREATE TABLE auth_permission(
     description VARCHAR(255),
     type VARCHAR(20) NOT NULL,
     domain_id UUID NOT NULL REFERENCES auth_domain(id) ON DELETE CASCADE,
-    date_created TIMESTAMP NOT NULL,
-    date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    date_created TIMESTAMP WITH TIME ZONE NOT NULL,
+    date_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
     updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -57,8 +57,8 @@ CREATE TABLE auth_grant(
     role_id UUID NOT NULL REFERENCES auth_role(id) ON DELETE CASCADE,
     permission_id UUID NOT NULL REFERENCES auth_permission(id) ON DELETE CASCADE,
     description VARCHAR(255),
-    date_created TIMESTAMP NOT NULL,
-    date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    date_created TIMESTAMP WITH TIME ZONE NOT NULL,
+    date_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
     updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -66,8 +66,8 @@ CREATE TABLE auth_grant(
 CREATE TABLE auth_assignment(
     account_email VARCHAR(255) NOT NULL REFERENCES auth_account(email) ON DELETE CASCADE,
     role_id UUID NOT NULL REFERENCES auth_role(id) ON DELETE CASCADE,
-    date_created TIMESTAMP NOT NULL,
-    date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    date_created TIMESTAMP WITH TIME ZONE NOT NULL,
+    date_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
     updated_by VARCHAR(255) REFERENCES auth_account(email) ON DELETE SET NULL ON UPDATE CASCADE,
     PRIMARY KEY(account_email, role_id)
@@ -98,7 +98,7 @@ BEGIN
 -- Create an elevated user and a root user alias
 INSERT INTO auth_account(id, first_name, last_name, dob, email, phone_no, status, date_created, date_updated, created_by, updated_by, password, is_deleted)
 VALUES
-(gen_random_uuid(), 'super', '', '1950-01-01', root_account_email, '+00000000000', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email, '_', false),
+((SELECT id FROM public.auth_account WHERE email = root_account_email), 'super', '', '1950-01-01', root_account_email, '+00000000000', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, root_account_email, root_account_email, '_', false),
 (admin_account_id, 'admin', '', '1950-01-01', admin_account_email, '+00000000000', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, admin_account_email, admin_account_email, '$2a$12$7BtwA4ZTgyVGM2F7SiCZaeAsM4VD1eP52zrSEdkaP3S60IxCgaXIC', false);
 
 INSERT INTO auth_role(id, name, description, date_created, date_updated, created_by, updated_by)

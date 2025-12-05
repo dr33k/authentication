@@ -74,6 +74,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.error("Error authenticating user: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
-        filterChain.doFilter(request, response);
+        try {
+            filterChain.doFilter(request, response);
+        }finally {
+            SecurityContextHolder.getContext().setAuthentication(null);
+        }
     }
 }

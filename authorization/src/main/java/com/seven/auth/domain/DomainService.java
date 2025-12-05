@@ -96,6 +96,8 @@ public class DomainService{
             }
 
             Domain domainEntity = Domain.from(request);
+            Domain finalDomainEntity = domainEntity;
+            domainEntity.getPermissions().forEach(permission -> permission.setDomain(finalDomainEntity));
             domainEntity = domainRepository.save(domainEntity);
             DomainDTO.Record response =  DomainDTO.Record.from(domainEntity);
 

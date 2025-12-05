@@ -64,6 +64,7 @@ public class TenantFilter extends OncePerRequestFilter {
 
             //Requests performed by superusers
             else if (currentPrincipalIsSuperUser(tenant)) {
+                log.info("Current principal is a superuser");
                 String tenantId = request.getHeader("X-Tenant-Id");
                 if (isRequestToCreateRegularAccount(request, path)) { //
                     assert tenantId != null : "Tenant not provided";
@@ -80,6 +81,7 @@ public class TenantFilter extends OncePerRequestFilter {
 
             //Requests performed by other users
             else {
+                log.info("Current principal is a regular user");
                 assert tenant != null : "Tenant not provided";
                 TenantContext.setCurrentTenant(tenant);
             }
@@ -92,7 +94,7 @@ public class TenantFilter extends OncePerRequestFilter {
     }
 
     private static boolean isRequestToCreateRegularAccount(HttpServletRequest request, String path) {
-        return "post".equals(request.getMethod().toLowerCase()) && path.startsWith(Constants.PATH_PREFIX + "/accounts");
+        return "POST".equals(request.getMethod()) && path.equals(Constants.PATH_PREFIX + "/accounts");
     }
 
     private static boolean currentPrincipalIsSuperUser(String tenant) {

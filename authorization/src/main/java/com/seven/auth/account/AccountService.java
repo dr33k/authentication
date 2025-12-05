@@ -15,6 +15,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationTrustResolver;
+import org.springframework.security.authentication.RememberMeAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,8 +28,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -39,6 +40,7 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
     private final EntityManager em;
     private final ApplicationRepository applicationRepository;
 
+
     public AccountService(AccountRepository accountRepository,
                           BCryptPasswordEncoder passwordEncoder, EntityManager em, ApplicationRepository applicationRepository) {
         this.accountRepository = accountRepository;
@@ -47,7 +49,7 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
         this.applicationRepository = applicationRepository;
     }
 
-    public Page<AccountDTO.Record> getAll(Pagination pagination, AccountDTO.Filter accountFilter) throws AuthorizationException  {
+    public Page<AccountDTO.Record> getAll(Pagination pagination, AccountDTO.Filter accountFilter) throws AuthorizationException {
         try {
             log.info("Fetching accounts: limit {}, offset {}", pagination.getLimit(), pagination.getOffset());
             Pageable pageable = PageRequest.of(pagination.getLimit(), pagination.getOffset(),
@@ -63,7 +65,7 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
         }
     }
 
-    public AccountDTO.Record get(UUID id)throws AuthorizationException {
+    public AccountDTO.Record get(UUID id) throws AuthorizationException {
         try {
             log.info("Fetching account: {}", id);
             Account accountFromDb = accountRepository.findById(id).orElseThrow(
@@ -94,11 +96,11 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
             account.setPassword(bCryptPasswordEncoder.encode(accountCreateRequest.password()));
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String email = authentication == null ? accountCreateRequest.email(): ((AccountDTO.Record)authentication.getPrincipal()).email();
-            account.setCreatedBy(email);
-            account.setUpdatedBy(email);
+            String principalEmail = isUserUnauthenticated(authentication) ? accountCreateRequest.email(): ((AccountDTO.Record) authentication.getPrincipal()).email();
+            account.setCreatedBy(principalEmail);
+            account.setUpdatedBy(principalEmail);
 
-            account = accountRepository.save(account);
+            account = accountRepository.saveAndFlush(account);
             AccountDTO.Record record = AccountDTO.Record.from(account);
 
             log.info("Account {} successfully created ins schema: {}", account.getId(), TenantContext.getCurrentTenant());
@@ -112,6 +114,10 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
         }
     }
 
+    private static boolean isUserUnauthenticated(Authentication authentication) {
+        return authentication instanceof AnonymousAuthenticationToken || authentication instanceof RememberMeAuthenticationToken;
+    }
+
     @Transactional
     public AccountDTO.Record createSuper(AccountDTO.Create accountCreateRequest) throws AuthorizationException {
         try {
@@ -119,36 +125,55 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
             //Persist in public schema
             AccountDTO.Record accountRecord = create(accountCreateRequest);
 
-            //Get authenticated principal email
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String principalEmail = authentication == null ? accountCreateRequest.email(): ((AccountDTO.Record)authentication.getPrincipal()).email();
-
             //Get all registered schemas/tenants
             Set<String> tenants = applicationRepository.findAll().stream().map(Application::getSchemaName).collect(Collectors.toSet());
             tenants.remove(Constants.PUBLIC_SCHEMA);
 
-            Account account = Account.from(accountCreateRequest);
-            for(String tenant: tenants){
-                em.createNativeQuery("SET SCHEMA '%s';".formatted(tenant)).executeUpdate();
-                if(!accountRepository.existsByEmail(accountCreateRequest.email())){
-                    //These accounts are not meant for login functionality, they are shadow accounts
-                    //BCrypt is always used for logins and no encoded digest can ever return a single underscore '_'
-                    account.setPassword("_");
-                    account.setCreatedBy(principalEmail);
-                    account.setUpdatedBy(principalEmail);
+            String sqlTemplate = "INSERT INTO \"%s\".auth_account(id, first_name, last_name, email, status,  phone_no, dob, password, is_deleted, date_created, created_by, date_updated, updated_by)" +
+                    "VALUES(:id, :firstName, :lastName, :email, :status, :phoneNo, :dob, :password, :isDeleted, CURRENT_TIMESTAMP, :createdBy, CURRENT_TIMESTAMP, :updatedBy);";
+            String sql;
+            for (String tenant : tenants) {
+                boolean exists = (Boolean) em.createNativeQuery("SELECT EXISTS(SELECT 1 FROM \"%s\".auth_account WHERE email = '%s');".formatted(tenant, accountCreateRequest.email())).getSingleResult();
+                log.info("Already exists in {} : {}; {}", tenant, exists, exists ? "Skipping..." : "Creating...");
+                if (!exists) {
+                    sql = sqlTemplate.formatted(tenant);
 
-                    account = accountRepository.saveAndFlush(account);
+                    em.createNativeQuery(sql)
+                            .setParameter("id", accountRecord.id())
+                            .setParameter("firstName", accountRecord.firstName())
+                            .setParameter("lastName", accountRecord.lastName())
+                            .setParameter("email", accountRecord.email())
+                            .setParameter("status", Account.AccountStatus.INACTIVE.toString())
+                            .setParameter("dob", accountRecord.dob())
+                            .setParameter("phoneNo", accountRecord.phoneNo())
+                            .setParameter("password", "_")
+                            .setParameter("isDeleted", false)
+                            .setParameter("createdBy", accountRecord.createdBy())
+                            .setParameter("updatedBy", accountRecord.updatedBy())
+                            .executeUpdate();
                 }
             }
 
+            assignRootRole(accountRecord);
             log.info("Tenant schemas populated with new superuser: {}", accountCreateRequest.email());
             return accountRecord;
         } catch (Exception e) {
-            log.error("Unable to create accounts. Message: ", e);
+            log.error("Unable to create accounts. Message: {}", e.getMessage());
             throw new ConflictException(e.getMessage());
         } finally {
             em.createNativeQuery("SET SCHEMA '%s';".formatted(Constants.PUBLIC_SCHEMA)).executeUpdate();
         }
+    }
+
+    private void assignRootRole(AccountDTO.Record accountRecord) {
+        log.info("Assigning ROOT role to account: {}",accountRecord.email());
+
+        em.createNativeQuery("INSERT INTO public.auth_assignment(account_email, role_id, date_created, date_updated, created_by, updated_by)\n" +
+                        "VALUES(:email, (SELECT id FROM public.auth_role WHERE name = 'ROOT'), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :principalEmail, :principalEmail);")
+                .setParameter("email", accountRecord.email())
+                .setParameter("principalEmail", accountRecord.createdBy())
+                .executeUpdate();
+        log.info("Assigned ROOT role to account: {} successfully",accountRecord.email());
     }
 
     public void delete(UUID id) throws AuthorizationException {
@@ -163,7 +188,7 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
     }
 
     @Transactional
-    public AccountDTO.Record update(UUID id, AccountDTO.Update accountUpdateRequest) throws AuthorizationException{
+    public AccountDTO.Record update(UUID id, AccountDTO.Update accountUpdateRequest) throws AuthorizationException {
         try {
             log.info("Modifying account: {}", id);
             Account account = accountRepository.findById(id)
