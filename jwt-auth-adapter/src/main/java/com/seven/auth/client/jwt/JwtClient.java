@@ -15,12 +15,10 @@ import java.util.UUID;
 public interface JwtClient {
 
     @PostMapping(value = "/register", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    Response<AccountDTO.Record> register(@RequestHeader(value = "Authorization") String bearerToken,
-                                         @RequestHeader(value = "X-Tenant-Id") UUID tenantId,
+    Response<AccountDTO.Record> register(@RequestHeader(value = "X-Tenant-Id") UUID tenantId,
                                          @RequestBody AccountDTO.Create request);
 
     @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    Response<AccountDTO.Record> login(@RequestHeader(value = "Authorization") String bearerToken,
-                                      @RequestHeader(value = "X-Tenant-Id") UUID tenantId,
+    Response<AccountDTO.Record> login(@RequestHeader(value = "X-Tenant-Id") UUID tenantId,
                                       @RequestBody JwtLoginRequest request);
 }
