@@ -27,7 +27,7 @@ public class JwtAuthController {
     @PostMapping(value = "/register", produces = "application/json", consumes = "application/json")
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER, required = true)
     public ResponseEntity<Response> createResource(@Valid @RequestBody AccountDTO.Create request) throws AuthorizationException {
-            AuthDTO userDTO = jwtService.provisionSuper(request);
+            AuthDTO userDTO = jwtService.register(request);
             return created(userDTO.data, userDTO.token, "/domains" );
     }
 

@@ -35,7 +35,7 @@ public class JwtSUAuthController {
 
     @PostMapping(value = "/provision", produces = "application/json", consumes = "application/json")
     public ResponseEntity<Response> provisionSuper(@Valid @RequestBody AccountDTO.Create request) throws AuthorizationException {
-        AuthDTO userDTO = jwtService.provisionSuper(request);
+        AuthDTO userDTO = jwtService.registerSuper(request);
         return ok(userDTO.data, userDTO.token);
     }
 }

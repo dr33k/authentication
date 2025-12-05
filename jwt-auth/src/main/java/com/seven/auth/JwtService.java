@@ -84,7 +84,7 @@ public class JwtService {
         return claims.getExpiration().before(new Date());
     }
 
-    public AuthDTO provisionSuper(AccountDTO.Create request) throws AuthorizationException {
+    public AuthDTO register(AccountDTO.Create request) throws AuthorizationException {
         try {
             AccountDTO.Record accountRecord = accountService.create(request);
             List<PermissionDTO.Record> permissionRecords = permissionRepository.findAllByAccount(accountRecord.email()).stream().map(PermissionDTO.Record::from).toList();

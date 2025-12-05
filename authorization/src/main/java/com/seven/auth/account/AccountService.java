@@ -137,7 +137,7 @@ public class AccountService implements UserDetailsService, UserDetailsPasswordSe
                     account.setCreatedBy(principalEmail);
                     account.setUpdatedBy(principalEmail);
 
-                    account = accountRepository.save(account);
+                    account = accountRepository.saveAndFlush(account);
                 }
             }
 
