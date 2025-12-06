@@ -1,7 +1,7 @@
-package com.seven.auth.config;
+package com.seven.auth.client.filter;
 
 import com.seven.auth.account.AccountService;
-import com.seven.auth.config.authentication.TenantFilter;
+import com.seven.auth.config.TenantFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;

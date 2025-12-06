@@ -4,7 +4,7 @@ import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.permission.PEnum;
 import com.seven.auth.util.Constants;
 import com.seven.auth.util.response.Response;
-import com.seven.auth.annotation.Authorize;
+import com.seven.auth.config.authorization.Authorize;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import jakarta.validation.Valid;

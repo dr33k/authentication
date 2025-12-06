@@ -1,6 +1,6 @@
 package com.seven.auth.permission;
 
-import com.seven.auth.annotation.Authorize;
+import com.seven.auth.config.authorization.Authorize;
 import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.util.Constants;
 import com.seven.auth.util.Pagination;

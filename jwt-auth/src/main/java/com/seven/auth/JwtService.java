@@ -8,7 +8,7 @@ import com.seven.auth.account.AuthDTO;
 import com.seven.auth.config.threadlocal.TenantContext;
 import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.exception.ClientException;
-import com.seven.auth.permission.PermissionDTO;
+import com.seven.auth.permission.Permission;
 import com.seven.auth.permission.PermissionRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -87,10 +87,10 @@ public class JwtService {
     public AuthDTO register(AccountDTO.Create request) throws AuthorizationException {
         try {
             AccountDTO.Record accountRecord = accountService.create(request);
-            List<PermissionDTO.Record> permissionRecords = permissionRepository.findAllByAccount(accountRecord.email()).stream().map(PermissionDTO.Record::from).toList();
+            List<String> permissions = permissionRepository.findAllByAccount(accountRecord.email()).stream().map(Permission::getName).toList();
 
             String token = generateToken(accountRecord.email(),
-                    Map.of("permissions", permissionRecords,
+                    Map.of("permissions", permissions,
                             "principal", accountRecord,
                             "tenant", TenantContext.getCurrentTenant())
             );
@@ -107,10 +107,10 @@ public class JwtService {
     public AuthDTO registerSuper(AccountDTO.Create request) throws AuthorizationException {
         try {
             AccountDTO.Record accountRecord = accountService.createSuper(request);
-            List<PermissionDTO.Record> permissionRecords = permissionRepository.findAllByAccount(accountRecord.email()).stream().map(PermissionDTO.Record::from).toList();
+            List<String> permissions = permissionRepository.findAllByAccount(accountRecord.email()).stream().map(Permission::getName).toList();
 
             String token = generateToken(accountRecord.email(),
-                    Map.of("permissions", permissionRecords,
+                    Map.of("permissions", permissions,
                             "principal", accountRecord,
                             "tenant", TenantContext.getCurrentTenant())
             );
@@ -133,10 +133,10 @@ public class JwtService {
                     .authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()))
                     .getPrincipal();
             AccountDTO.Record accountRecord = AccountDTO.Record.from(account);
-            List<PermissionDTO.Record> permissionRecords = permissionRepository.findAllByAccount(account.getEmail()).stream().map(PermissionDTO.Record::from).toList();
+            List<String> permissions = permissionRepository.findAllByAccount(accountRecord.email()).stream().map(Permission::getName).toList();
 
             String token = generateToken(account.getEmail(),
-                    Map.of("permissions", permissionRecords,
+                    Map.of("permissions", permissions,
                             "principal", accountRecord,
                             "tenant", tenant)
             );
