@@ -1,7 +1,6 @@
-package com.seven.auth.annotation;
+package com.seven.auth.config.authorization;
 
 import com.seven.auth.permission.PEnum;
-import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

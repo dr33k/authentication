@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.seven.auth.JwtService;
 import com.seven.auth.account.AccountDTO;
-import com.seven.auth.permission.PermissionDTO;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -46,13 +45,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     if (email != null) {
                         if (jwtService.isTokenValid(claims)) {
-                            CollectionType setType = objectMapper.getTypeFactory().constructCollectionType(Set.class, PermissionDTO.Record.class);
-
                             //Extract permissions
-                            Set<PermissionDTO.Record> permissions = (Set<PermissionDTO.Record>) objectMapper.readValue(
-                                    objectMapper.writeValueAsString(claims.get("permissions")),
-                                    setType
-                            );
+                            List<String> permissions = (List<String>)claims.get("permissions");
                             //Extract account record
                             AccountDTO.Record accountRecord = objectMapper.convertValue(claims.get("principal"), AccountDTO.Record.class);
                             //Extract tenant

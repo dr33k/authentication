@@ -1,23 +1,20 @@
-package com.seven.auth.annotation;
+package com.seven.auth.config.authorization;
 
 import com.seven.auth.exception.AuthorizationException;
-import com.seven.auth.exception.ConflictException;
 import com.seven.auth.exception.ForbiddenException;
 import com.seven.auth.permission.PEnum;
-import com.seven.auth.permission.PermissionDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,7 +25,7 @@ public class AuthorizationHandlerInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws AuthorizationException{
         try {
-            Set<String> tokenPermissions = ((Set<PermissionDTO.Record>) request.getAttribute("permissions")).stream().map(PermissionDTO.Record::name).collect(Collectors.toSet());
+            List<String> tokenPermissions = ((List<String>) request.getAttribute("permissions"));
             log.info("User permissions: {}", tokenPermissions);
 
             if (handler instanceof HandlerMethod) {

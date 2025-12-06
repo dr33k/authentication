@@ -1,11 +1,11 @@
 package com.seven.auth.role;
 
-import com.seven.auth.annotation.Authorize;
+import com.seven.auth.config.authorization.Authorize;
 import com.seven.auth.permission.PEnum;
 import com.seven.auth.util.Constants;
 import com.seven.auth.util.Pagination;
 import com.seven.auth.exception.AuthorizationException;
-import com.seven.auth.util.response.Response;
+import com.seven.auth.dto.response.Response;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import jakarta.validation.Valid;
@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-import static com.seven.auth.util.response.Responder.noContent;
-import static com.seven.auth.util.response.Responder.ok;
+import static com.seven.auth.dto.response.Responder.noContent;
+import static com.seven.auth.dto.response.Responder.ok;
 
 @RestController
 @RequestMapping(Constants.PATH_PREFIX+"/roles")

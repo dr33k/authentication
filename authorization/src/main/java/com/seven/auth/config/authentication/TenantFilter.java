@@ -1,4 +1,4 @@
-package com.seven.auth.config;
+package com.seven.auth.config.authentication;
 
 import com.seven.auth.application.ApplicationRepository;
 import com.seven.auth.config.threadlocal.TenantContext;
