@@ -48,8 +48,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                             //Extract account record
                             IAccount.Record accountRecord = objectMapper.convertValue(claims.get("principal"), IAccount.Record.class);
-                            //Extract tenant
-                            String tenant = (String) claims.get("tenant");
 
                             request.setAttribute("subject", email);
                             request.setAttribute("permissions", permissions);
