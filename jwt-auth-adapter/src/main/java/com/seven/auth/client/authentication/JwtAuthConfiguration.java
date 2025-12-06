@@ -1,17 +1,13 @@
-package com.seven.auth.client.filter;
+package com.seven.auth.client.authentication;
 
-import com.seven.auth.account.AccountService;
-import com.seven.auth.config.TenantFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -19,12 +15,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableMethodSecurity
 public class JwtAuthConfiguration{
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final TenantFilter tenantFilter;
 
-    public JwtAuthConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter, TenantFilter tenantFilter) {
+    @Value("authentication.permitted.paths")
+    private String[] permittedPaths;
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public JwtAuthConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.tenantFilter = tenantFilter;
     }
 
     @Bean
@@ -34,30 +32,14 @@ public class JwtAuthConfiguration{
 
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry
-                                .requestMatchers(HttpMethod.POST, "/auth/**", "/su/auth/login**").permitAll()
+                                .requestMatchers(HttpMethod.POST, permittedPaths).permitAll()
                                 .requestMatchers("/swagger", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                                 .anyRequest().authenticated()
                 )
 
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(tenantFilter, UsernamePasswordAuthenticationFilter.class)
-
                 .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
-    }
-
-
-    @Bean
-    public AuthenticationProvider authenticationProvider(AccountService accountService) {
-        DaoAuthenticationProvider dao = new DaoAuthenticationProvider(accountService);
-        dao.setUserDetailsPasswordService(accountService);
-        dao.setPasswordEncoder(bCryptPasswordEncoder());
-        return dao;
-    }
-
-    @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder() {
-        return new BCryptPasswordEncoder(12);
     }
 }

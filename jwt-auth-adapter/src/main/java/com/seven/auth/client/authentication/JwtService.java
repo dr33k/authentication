@@ -1,6 +1,7 @@
-package com.seven.auth;
+package com.seven.auth.client.authentication;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seven.auth.JwtLoginRequest;
 import com.seven.auth.account.Account;
 import com.seven.auth.account.AccountDTO;
 import com.seven.auth.account.AccountService;
@@ -37,17 +38,9 @@ import java.util.Objects;
 public class JwtService {
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
     private final Environment environment;
-    final private AccountService accountService;
-    final private PermissionRepository permissionRepository;
-    private final AuthenticationProvider authenticationProvider;
-    private final ObjectMapper objectMapper;
 
-    public JwtService(Environment environment, AccountService accountService, PermissionRepository permissionRepository, AuthenticationProvider authenticationProvider, ObjectMapper objectMapper) {
+    public JwtService(Environment environment) {
         this.environment = environment;
-        this.accountService = accountService;
-        this.permissionRepository = permissionRepository;
-        this.authenticationProvider = authenticationProvider;
-        this.objectMapper = objectMapper;
     }
 
     public Claims extractClaims(String token) {
@@ -63,19 +56,6 @@ public class JwtService {
         return Keys.hmacShaKeyFor(bytes);
     }
 
-    public String generateToken(String subject, Map<String, Object> claims) {
-        ZonedDateTime now = ZonedDateTime.now();
-        return Jwts
-                .builder()
-                .serializeToJsonWith(new JacksonSerializer <>(objectMapper))
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(Date.from(now.toInstant()))
-                .setExpiration(Date.from(now.plusHours(12).toInstant()))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
-    }
-
     public boolean isTokenValid(Claims claims) {
         return !isTokenExpired(claims);
     }
@@ -84,67 +64,4 @@ public class JwtService {
         return claims.getExpiration().before(new Date());
     }
 
-    public AuthDTO register(AccountDTO.Create request) throws AuthorizationException {
-        try {
-            AccountDTO.Record accountRecord = accountService.create(request);
-            List<String> permissions = permissionRepository.findAllByAccount(accountRecord.email()).stream().map(Permission::getName).toList();
-
-            String token = generateToken(accountRecord.email(),
-                    Map.of("permissions", permissions,
-                            "principal", accountRecord,
-                            "tenant", TenantContext.getCurrentTenant())
-            );
-            return AuthDTO.builder().data(accountRecord).token(token).build();
-        } catch (AuthorizationException e) {
-            log.error("ResponseStatusException; Unable to register account {}. Message: ", request.email(), e);
-            throw e;
-        } catch (Exception e) {
-            log.error("Unable to register account {}. Message: ", request.email(), e);
-            throw new ClientException(e.getMessage());
-        }
-    }
-
-    public AuthDTO registerSuper(AccountDTO.Create request) throws AuthorizationException {
-        try {
-            AccountDTO.Record accountRecord = accountService.createSuper(request);
-            List<String> permissions = permissionRepository.findAllByAccount(accountRecord.email()).stream().map(Permission::getName).toList();
-
-            String token = generateToken(accountRecord.email(),
-                    Map.of("permissions", permissions,
-                            "principal", accountRecord,
-                            "tenant", TenantContext.getCurrentTenant())
-            );
-            return AuthDTO.builder().data(accountRecord).token(token).build();
-        } catch (AuthorizationException e) {
-            log.error("ResponseStatusException; Unable to register superuser {}. Message: ", request.email(), e);
-            throw e;
-        } catch (Exception e) {
-            log.error("Unable to register superuser {}. Message: ", request.email(), e);
-            throw new ClientException(e.getMessage());
-        }
-    }
-
-    @Transactional
-    public AuthDTO login(JwtLoginRequest request) throws AuthorizationException{
-        try {
-            String tenant = TenantContext.getCurrentTenant();
-            log.info("Login username: {}; tenant: {}", request.getUsername(), tenant);
-            Account account = (Account) authenticationProvider
-                    .authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()))
-                    .getPrincipal();
-            AccountDTO.Record accountRecord = AccountDTO.Record.from(account);
-            List<String> permissions = permissionRepository.findAllByAccount(accountRecord.email()).stream().map(Permission::getName).toList();
-
-            String token = generateToken(account.getEmail(),
-                    Map.of("permissions", permissions,
-                            "principal", accountRecord,
-                            "tenant", tenant)
-            );
-            log.info("User {} logged in successfully", request.getUsername());
-            return AuthDTO.builder().data(accountRecord).token(token).build();
-        } catch (Exception e) {
-            log.error("Unable to login {}. Message: ", request.getUsername(), e);
-            throw new ClientException(e.getMessage());
-        }
-    }
 }

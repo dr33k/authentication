@@ -1,6 +1,4 @@
-package com.seven.auth.client.interceptor;
-
-import com.seven.auth.permission.PEnum;
+package com.seven.auth.client.authorization;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,5 +8,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.METHOD, ElementType.TYPE})
 public @interface Authorize {
-    PEnum[] permissions();
+    String[] permissions();
 }

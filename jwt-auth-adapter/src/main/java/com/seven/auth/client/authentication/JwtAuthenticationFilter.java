@@ -1,10 +1,7 @@
-package com.seven.auth.client.filter;
+package com.seven.auth.client.authentication;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import com.seven.auth.JwtService;
-import com.seven.auth.account.AccountDTO;
-import com.seven.auth.permission.PermissionDTO;
+import com.seven.auth.dto.account.IAccount;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -46,15 +43,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     if (email != null) {
                         if (jwtService.isTokenValid(claims)) {
-                            CollectionType setType = objectMapper.getTypeFactory().constructCollectionType(Set.class, PermissionDTO.Record.class);
-
                             //Extract permissions
-                            Set<PermissionDTO.Record> permissions = (Set<PermissionDTO.Record>) objectMapper.readValue(
-                                    objectMapper.writeValueAsString(claims.get("permissions")),
-                                    setType
-                            );
+                            Set<String> permissions = (Set<String>)claims.get("permissions");
+
                             //Extract account record
-                            AccountDTO.Record accountRecord = objectMapper.convertValue(claims.get("principal"), AccountDTO.Record.class);
+                            IAccount.Record accountRecord = objectMapper.convertValue(claims.get("principal"), IAccount.Record.class);
                             //Extract tenant
                             String tenant = (String) claims.get("tenant");
 
