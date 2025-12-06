@@ -1,6 +1,7 @@
 package com.seven.auth.account;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.seven.auth.dto.account.IAccount;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -34,7 +35,7 @@ public class AccountDTO {
             String password,
             @Past(message = "Future and current dates not allowed")
             LocalDate dob
-    ) {
+    ) implements IAccount.Request{
     }
 
     @Validated
@@ -84,7 +85,7 @@ public class AccountDTO {
             ZonedDateTime dateUpdated,
             String createdBy,
             String updatedBy
-    ) {
+    )  implements IAccount.Record {
         public static Record from(Account account) {
             return new Record(
                     account.getId(),
