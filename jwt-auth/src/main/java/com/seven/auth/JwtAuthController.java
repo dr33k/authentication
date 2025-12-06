@@ -1,18 +1,23 @@
 package com.seven.auth;
 
+import com.seven.auth.account.AccountDTO;
+import com.seven.auth.account.AuthDTO;
+import com.seven.auth.dto.jwt.JwtLoginRequest;
+import com.seven.auth.dto.response.Response;
 import com.seven.auth.exception.AuthorizationException;
 import com.seven.auth.util.Constants;
-import com.seven.auth.util.response.Response;
-import com.seven.auth.account.*;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import static com.seven.auth.util.response.Responder.created;
-import static com.seven.auth.util.response.Responder.ok;
+import static com.seven.auth.dto.response.Responder.created;
+import static com.seven.auth.dto.response.Responder.ok;
 
 @RestController
 @RequestMapping("/auth")

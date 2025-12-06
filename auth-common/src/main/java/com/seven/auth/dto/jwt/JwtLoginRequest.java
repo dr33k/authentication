@@ -1,11 +1,9 @@
-package com.seven.auth;
+package com.seven.auth.dto.jwt;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class JwtLoginRequest {
     @NotBlank
     private String username;

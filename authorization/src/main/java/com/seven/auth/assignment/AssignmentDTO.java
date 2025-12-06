@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.seven.auth.account.AccountDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
-import lombok.Data;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.ZonedDateTime;
