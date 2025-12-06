@@ -16,7 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class JwtAuthConfiguration{
 
-    @Value("authentication.permitted.paths")
+    @Value("authentication.jwt.permitted-paths")
     private String[] permittedPaths;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;

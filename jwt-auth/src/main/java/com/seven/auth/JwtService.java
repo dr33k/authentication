@@ -60,7 +60,7 @@ public class JwtService {
     }
 
     private Key getSigningKey() {
-        byte[] bytes = Objects.requireNonNull(environment.getProperty("jwt.signing-key")).getBytes(StandardCharsets.UTF_8);
+        byte[] bytes = Objects.requireNonNull(environment.getProperty("authentication.jwt.signing-key")).getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(bytes);
     }
 
