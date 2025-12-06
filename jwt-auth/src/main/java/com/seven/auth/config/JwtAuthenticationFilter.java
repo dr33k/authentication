@@ -45,10 +45,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     if (email != null) {
                         if (jwtService.isTokenValid(claims)) {
-                            CollectionType setType = objectMapper.getTypeFactory().constructCollectionType(Set.class, String.class);
-
                             //Extract permissions
-                            Set<String> permissions = (Set<String>)claims.get("permissions");
+                            List<String> permissions = (List<String>)claims.get("permissions");
                             //Extract account record
                             AccountDTO.Record accountRecord = objectMapper.convertValue(claims.get("principal"), AccountDTO.Record.class);
                             //Extract tenant
