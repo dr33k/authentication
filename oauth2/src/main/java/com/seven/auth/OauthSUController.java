@@ -7,8 +7,6 @@ import com.seven.auth.dto.response.Response;
 import com.seven.auth.exception.AuthorizationException;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,23 +17,25 @@ import static com.seven.auth.dto.response.Responder.ok;
 
 @RestController
 @RequestMapping("su/auth")
-public class JwtSUAuthController {
-    private final JwtService jwtService;
+public class OauthSUController {
+    OauthService oauth2Service;
 
-    public JwtSUAuthController(JwtService jwtService) {
-        this.jwtService = jwtService;
+    public OauthSUController(OauthService oauth2Service) {
+        this.oauth2Service = oauth2Service;
     }
 
     @SecurityRequirements
     @PostMapping(value = "/login", produces = "application/json", consumes = "application/json")
     public ResponseEntity<Response> login(@Valid @RequestBody JwtLoginRequest request) throws AuthorizationException {
-        AuthDTO userDTO = jwtService.login(request);
-        return ok(userDTO.data, userDTO.token);
+//        AuthDTO userDTO = oauth2Service.login(request);
+//        return ok(userDTO.data, userDTO.token);
+        return null;
     }
 
     @PostMapping(value = "/provision", produces = "application/json", consumes = "application/json")
     public ResponseEntity<Response> provisionSuper(@Valid @RequestBody AccountDTO.Create request) throws AuthorizationException {
-        AuthDTO userDTO = jwtService.registerSuper(request);
-        return ok(userDTO.data, userDTO.token);
+//        AuthDTO userDTO = oauth2Service.registerSuper(request);
+//        return ok(userDTO.data, userDTO.token);
+        return null;
     }
 }
