@@ -12,7 +12,7 @@ import java.util.List;
 public class AuthorizationHandlerInterceptorConfiguration implements WebMvcConfigurer {
     private final AuthorizationHandlerInterceptor authorizationHandlerInterceptor;
 
-    @Value("authorization.permitted.paths")
+    @Value("authorization.jwt.permitted-paths")
     private List<String> permittedPaths;
 
     public AuthorizationHandlerInterceptorConfiguration(AuthorizationHandlerInterceptor authorizationHandlerInterceptor) {
