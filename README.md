@@ -5,7 +5,7 @@ Plug-and-play adapter for microservices.
 
 Supports JWT, OAuth2 and Kerberos. 
 
-Kerberos implementation currently in progress.
+OAuth2 implementation currently in progress.
 
 ## Run JWT application
 
