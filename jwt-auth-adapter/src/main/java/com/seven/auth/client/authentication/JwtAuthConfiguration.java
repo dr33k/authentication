@@ -11,17 +11,17 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.util.List;
+
 
 @Configuration
 @EnableMethodSecurity
 public class JwtAuthConfiguration{
-
-    @Value("authentication.jwt.permitted-paths")
-    private String[] permittedPaths;
-
+    private List<String> permittedPaths;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public JwtAuthConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public JwtAuthConfiguration(@Value("authentication.jwt.permitted-paths")List<String> permittedPaths, JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.permittedPaths = permittedPaths;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
@@ -32,7 +32,7 @@ public class JwtAuthConfiguration{
 
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry
-                                .requestMatchers(permittedPaths).permitAll()
+                                .requestMatchers(permittedPaths.toArray(new String[]{})).permitAll()
                                 .requestMatchers("/swagger", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                                 .anyRequest().authenticated()
                 )

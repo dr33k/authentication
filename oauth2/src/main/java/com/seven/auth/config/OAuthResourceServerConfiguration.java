@@ -1,19 +1,43 @@
 package com.seven.auth.config;
 
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
+import org.springframework.security.oauth2.server.resource.authentication.OpaqueTokenAuthenticationProvider;
+import org.springframework.security.oauth2.server.resource.introspection.SpringOpaqueTokenIntrospector;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
 public class OAuthResourceServerConfiguration {
+    private final List<String> trustedJwtIssuers;
+    private final List<IntrospectionServer> trustedIntrospectionServers;
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+    public OAuthResourceServerConfiguration(
+            TrustedJwtIssuersList trustedJwtIssuersList,
+            IntrospectionServerList introspectionServerList
+    ) {
+        this.trustedJwtIssuers = trustedJwtIssuersList.getTrustedIssuers();
+        this.trustedIntrospectionServers = introspectionServerList.getServers();
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -21,19 +45,51 @@ public class OAuthResourceServerConfiguration {
 
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry
-                                .requestMatchers(HttpMethod.POST, "/auth/**", "/su/auth/login**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/auth/**", "/su/auth/*/*/login**").permitAll()
                                 .requestMatchers("/swagger", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                                 .anyRequest().authenticated()
                 )
-
-                .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
-                );
+                .oauth2ResourceServer((oauth2) -> oauth2
+                        .authenticationManagerResolver(
+                                this.tokenAuthenticationManagerResolver()));
         return http.build();
     }
 
-    @Bean
-    public JwtDecoder jwtDecoder() {
-        return JwtDecoders.fromIssuerLocation("");
+    //Configuration to switch between Opaque tokens and JWTs
+    public AuthenticationManagerResolver<HttpServletRequest> tokenAuthenticationManagerResolver() {
+        JwtIssuerAuthenticationManagerResolver jwt = JwtIssuerAuthenticationManagerResolver
+                .fromTrustedIssuers(trustedJwtIssuers);
+
+        Map<String, AuthenticationManager> otMap = getOpaqueTokenAuthManagerMap();
+
+        return (request) -> useOpaque(request) ? resolveOpaqueToken(request, otMap) : jwt.resolve(request);
+    }
+
+    private boolean useOpaque(HttpServletRequest request) {
+        return request.getRequestURI().startsWith("/auth/oauth2/opaque/");
+    }
+
+    private AuthenticationManager resolveOpaqueToken(HttpServletRequest request, Map<String, AuthenticationManager> otMap) throws ResponseStatusException {
+        try {
+            String introspectionServerName = request.getRequestURI().substring(1).split("/")[3];
+            return otMap.get(introspectionServerName);
+        }catch (Exception e){
+            log.error("Error resolving opaque token: ", e);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    private Map<String, AuthenticationManager> getOpaqueTokenAuthManagerMap() {
+        return trustedIntrospectionServers.stream()
+                .collect(
+                        Collectors.toMap(
+                                IntrospectionServer::getName,
+                                server ->
+                                        new OpaqueTokenAuthenticationProvider(
+                                                new SpringOpaqueTokenIntrospector(server.getIntrospectionUri(), server.getClientId(), server.getClientSecret())
+                                        )::authenticate
+                        )
+                );
     }
 
 }

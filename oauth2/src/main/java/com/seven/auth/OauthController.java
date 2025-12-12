@@ -10,37 +10,47 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static com.seven.auth.dto.response.Responder.created;
 import static com.seven.auth.dto.response.Responder.ok;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/auth/oauth2")
 @SecurityRequirements
 public class OauthController {
-    OauthService oauth2Service;
+    private final OauthService oauth2Service;
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public OauthController(OauthService oauth2Service) {
         this.oauth2Service = oauth2Service;
     }
 
-    @PostMapping(value = "/register", produces = "application/json", consumes = "application/json")
+    @PostMapping(value = "/{variant}/{provider}/register", produces = "application/json", consumes = "application/json")
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER, required = true)
-    public ResponseEntity<Response> createResource(@Valid @RequestBody AccountDTO.Create request) throws AuthorizationException {
+    public ResponseEntity<Response> createResource(
+            @PathVariable("variant") String variant,
+            @PathVariable("provider") String provider,
+            @Valid @RequestBody AccountDTO.Create request) throws AuthorizationException {
+        log.info("OAuth2 variant {}; provider {}", variant, provider);
+
 //            AuthDTO userDTO = oauth2Service.register(request);
 //            return created(userDTO.data, userDTO.token, "/domains" );
         return null;
     }
 
-    @PostMapping(value = "/login", produces = "application/json", consumes = "application/json")
+    @PostMapping(value = "/{variant}/{provider}/login", produces = "application/json", consumes = "application/json")
     @Parameter(name = Constants.TENANT_ID_KEY, in = ParameterIn.HEADER, required = true)
-    public ResponseEntity<Response> login(@Valid @RequestBody JwtLoginRequest request) throws AuthorizationException {
-//        AuthDTO userDTO = oauth2Service.login(request);
+    public ResponseEntity<Response> login(
+            @PathVariable("variant") String variant,
+            @PathVariable("provider") String provider,
+            @Valid @RequestBody JwtLoginRequest request) throws AuthorizationException {
+        log.info("OAuth2 variant {}; provider {}", variant, provider);
+
+        //        AuthDTO userDTO = oauth2Service.login(request);
 //        return ok(userDTO.data, userDTO.token);
         return null;
     }

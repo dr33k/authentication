@@ -12,17 +12,14 @@ import java.util.List;
 public class AuthorizationHandlerInterceptorConfiguration implements WebMvcConfigurer {
     private final AuthorizationHandlerInterceptor authorizationHandlerInterceptor;
 
-    @Value("authorization.jwt.permitted-paths")
-    private List<String> permittedPaths;
+    private final List<String> permittedPaths;
 
-    public AuthorizationHandlerInterceptorConfiguration(AuthorizationHandlerInterceptor authorizationHandlerInterceptor) {
+    public AuthorizationHandlerInterceptorConfiguration(@Value("authorization.jwt.permitted-paths")List<String> permittedPaths, AuthorizationHandlerInterceptor authorizationHandlerInterceptor) {
+        permittedPaths.addAll(List.of("/swagger/**", "/swagger-ui/**", "/v3/api-docs/**"));
+        this.permittedPaths = permittedPaths;
         this.authorizationHandlerInterceptor = authorizationHandlerInterceptor;
     }
 
-    @PostConstruct
-    public void setup(){
-        permittedPaths.addAll(List.of("/swagger/**", "/swagger-ui/**", "/v3/api-docs/**"));
-    }
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authorizationHandlerInterceptor)
