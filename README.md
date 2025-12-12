@@ -3,7 +3,7 @@ Schema-per-tenant modular-monolithic authentication solution.
 
 Plug-and-play adapters for microservices. 
 
-Supports JWT, OAuth2 OIDC and OAuth2 Opaque Tokens. 
+Supports self-signed JWTs, OAuth2 OIDC and OAuth2 Opaque Tokens. 
 
 ## Requirements
 
@@ -34,3 +34,4 @@ OR for truly native pseudo-random number generation by BCryptPasswordEncoder on 
 
 
 Visit http://localhost:8080/swagger
+
